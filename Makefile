@@ -13,6 +13,7 @@ LDFLAGS   := $(ROOTLDFLAGS)
 OBJECTS2   := Subtraction.o run_genie_analysis.o Fiducial.o genie_analysis.o
 OBJECTS3   := Subtraction.o run_systematics.o Fiducial.o systematics.o
 OBJECTS4   := gst.o run_gst.o
+OBJECTS5   := event_selector.o run_event_selector.o
 
 all: genie_analysis systematics
 
@@ -23,6 +24,8 @@ systematics: $(OBJECTS3)
 		$(CXX) -o systematics $(OBJECTS3) $(ROOTCFLAGS) $(ROOTLDFLAGS) $(ROOTLIBS)
 genie_true: $(OBJECTS4)
 		$(CXX) -o genie_true $(OBJECTS4) $(ROOTCFLAGS) $(ROOTLDFLAGS) $(ROOTLIBS)
+event_selector: $(OBJECTS5)
+		$(CXX) -o event_selector $(OBJECTS5) $(ROOTCFLAGS) $(ROOTLDFLAGS) $(ROOTLIBS)
 
 clean:
 	@echo 'Removing all build files'

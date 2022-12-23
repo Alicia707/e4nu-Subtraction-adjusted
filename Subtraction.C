@@ -16,194 +16,190 @@
 
 void Subtraction::prot1_pi2_rot_func(TVector3  V3prot, TVector3 V3pi[2], TLorentzVector V4prot, TLorentzVector V4pi[2], int q_pi[2], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_1p1pi[], int targetCharge)
 {
-    /*const int N_pi=2;
-    double rotation_ang;
-    TVector3 V3_rot_pi[2], V3_p_rot;
-    bool status_pi[2]={true};
-    bool status_prot = true;
+  const int N_pi = 2;
+  double rotation_ang = 0.0;
+  TVector3 V3_rot_pi[2], V3_p_rot;
+  bool status_pi[2] = {true};
+  bool status_prot = true;
 
-    double N_all = 0;
-    double N_1p1pi[2]={0};
-       for(int g=0; g<N_tot; g++)
-       {
-         rotation_ang=gRandom->Uniform(0,2*TMath::Pi());
-         V3_p_rot= V3prot;
+  double N_all = 0;
+  double N_1p1pi[2] = {0};
+  double N_1p1pi_diff[2] = {0}; //for when there is 1 pimi and 1 pipl
 
-         V3_p_rot.Rotate(rotation_ang,V3q);
+  std::vector<int> piplIndexCounter;
+  std::vector<int> pimiIndexCounter;
+  int PiPlusCounter = 0;
+  int PiMinusCounter = 0;
 
-         status_prot = PFiducialCut(fbeam_en, V3_p_rot);
-         for(int i=0;i<N_pi;i++)
-         {
-  	        V3_rot_pi[i]=V3pi[i];
-  	        V3_rot_pi[i].Rotate(rotation_ang,V3q);
-  	        status_pi[i]=Pi_phot_fid_united(fbeam_en, V3_rot_pi[i],q_pi[i]);
-         }
-
-         if(status_prot  && status_pi[0]  && !status_pi[1] ) N_1p1pi[0]++;
-         if(status_prot  && !status_pi[0]  && status_pi[1] ) N_1p1pi[1]++;
-         if(status_prot  && status_pi[0]  && status_pi[1] ) N_all++;
-       }
-         //----------------------1p2pi->1p1pi
-         for(int h=0;h<N_pi;h++)
-         {
-           prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
-           if(N_all!=0)
-            P_1p1pi[h] = -(N_1p1pi[h]/N_all);
-           else
-            P_1p1pi[h]=0; //N_all!=0 statement
-         }*/
-    const int N_pi=2;
-    double rotation_ang;
-    TVector3 V3_rot_pi[2], V3_p_rot;
-    bool status_pi[2]={true};
-    bool status_prot = true;
-
-    double N_all = 0;
-    double N_1p1pi[2]={0};
-    double N_1p1pi_diff[2]={0}; //for when there is 1 pimi and 1 pipl
-
-    std::vector<int> piplIndexCounter;
-    std::vector<int> pimiIndexCounter;
-    int PiPlusCounter = 0;
-    int PiMinusCounter = 0;
-
-    for(int i = 0; i < N_pi; i++)
+  for(int i = 0; i < N_pi; i++)
+  {
+    if(q_pi[i] > 0)
     {
-     if(q_pi[i] > 0)
-     {
-       piplIndexCounter.push_back(i);
-       PiPlusCounter++;
-     }
-     else if(q_pi[i] < 0)
-     {
-       pimiIndexCounter.push_back(i);
-       PiMinusCounter++;
-     }
+      piplIndexCounter.push_back(i);
+      PiPlusCounter++;
     }
-    //Check if putting for inside if statement for combo check speeds up the code at all (use linux "time" command)
-    for(int g = 0; g < N_tot; g++) // Get number of charges, set up vectors, etc.
+    else if(q_pi[i] < 0)
     {
-     rotation_ang=gRandom->Uniform(0,2*TMath::Pi());
-     V3_p_rot= V3prot;
-
-     V3_p_rot.Rotate(rotation_ang,V3q);
-
-     status_prot = PFiducialCut(fbeam_en, V3_p_rot);
-
-     for(int i = 0; i < N_pi; i++)// Get number of charges, set up vectors, etc.
-     {
-       V3_rot_pi[i]=V3pi[i];
-       V3_rot_pi[i].Rotate(rotation_ang,V3q);
-       status_pi[i]=Pi_phot_fid_united(fbeam_en, V3_rot_pi[i],q_pi[i]);
-     }
-
-     if(status_prot  && status_pi[0]  && status_pi[1] ) N_all++; //both pion det
-     if(targetCharge > 0 && PiPlusCounter == 2 && PiMinusCounter == 0)
-     {
-       if(status_prot  && status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] ) N_1p1pi[0]++; //1st pion det
-       if(status_prot  && !status_pi[piplIndexCounter[0]]  && status_pi[piplIndexCounter[1]] ) N_1p1pi[1]++; //2nd pion det
-     }
-     else if(targetCharge < 0 && PiPlusCounter == 0 && PiMinusCounter == 2)
-     {
-       if(status_prot  && status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] ) N_1p1pi[0]++; //1st pion det
-       if(status_prot  && !status_pi[pimiIndexCounter[0]]  && status_pi[pimiIndexCounter[1]] ) N_1p1pi[1]++; //2nd pion det
-     }
-     else if(PiPlusCounter == 1 && PiMinusCounter == 1)
-     {
-       if(status_prot && status_pi[piplIndexCounter[0]] && !status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[0]]++; //the pipl is det
-       if(status_prot && !status_pi[piplIndexCounter[0]] && status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[0]]++; //the pimi is det
-     }
-     else if(targetCharge == 0) //Previous logic to avoid seg fault errors 6.29.22 -> Previous logic did not account for detection of diff pion charges
-     {
-       if(status_prot  && status_pi[0]  && !status_pi[1] ) N_1p1pi[0]++;
-       if(status_prot  && !status_pi[0]  && status_pi[1] ) N_1p1pi[1]++;
-     }
+      pimiIndexCounter.push_back(i);
+      PiMinusCounter++;
     }
-    //Check if this is to contribute to pipl or pimi histos
-    if(targetCharge == 1) // contribute to pipl
+  }
+
+  //Check if putting for inside if statement for combo check speeds up the code at all (use linux "time" command)
+  for(int g = 0; g < N_tot; g++) // Get number of charges, set up vectors, etc.
+  {
+    rotation_ang = gRandom->Uniform(0,2*TMath::Pi());
+    V3_p_rot = V3prot;
+
+    V3_p_rot.Rotate(rotation_ang, V3q);
+
+    status_prot = PFiducialCut(fbeam_en, V3_p_rot);
+
+    for(int i = 0; i < N_pi; i++)// Get number of charges, set up vectors, etc.
     {
-     if(PiPlusCounter == 2 && PiMinusCounter == 0)
-     {
-       for(int h = 0; h<N_pi; h++) //Go over two pions that are the same (both pipl)
-       {
-         prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
-         if(N_all!=0)
-         {
-           P_1p1pi[h] = -(N_1p1pi[h]/N_all);
-         }
-         else
-          P_1p1pi[h]=0; //N_all!=0 statement
-       }
-     }
-     else if(PiPlusCounter == 1 && PiMinusCounter == 1)
-     {
-       prot1_pi1_en_calc(V4prot, V4pi[piplIndexCounter[0]], q_pi[piplIndexCounter[0]], V4_el, &Ecal[2], &p_miss_perp[2]);
-       if(N_all!=0)
-       {
-         P_1p1pi[2] = -(N_1p1pi_diff[piplIndexCounter[0]]/N_all);
-       }
-       else
-         P_1p1pi[2] = 0;
-     }
+      V3_rot_pi[i]=V3pi[i];
+      V3_rot_pi[i].Rotate(rotation_ang, V3q);
+      status_pi[i]=Pi_phot_fid_united(fbeam_en, V3_rot_pi[i],q_pi[i]);
     }
 
-    else if(targetCharge == -1)
+    if(status_prot  && status_pi[0]  && status_pi[1] ) N_all++; //both pion det
+
+    if(targetCharge > 0 && PiPlusCounter == 2 && PiMinusCounter == 0)
     {
-     if(PiPlusCounter == 0 && PiMinusCounter == 2)
-     {
-       for(int h = 0; h<N_pi; h++)
-       {
-         prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
-         if(N_all!=0)
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] ) N_1p1pi[0]++; //1st pion det
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] ) N_1p1pi[1]++; //2nd pion det
+    }
+    else if(targetCharge < 0 && PiPlusCounter == 0 && PiMinusCounter == 2)
+    {
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] ) N_1p1pi[0]++; //1st pion det
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] ) N_1p1pi[1]++; //2nd pion det
+    }
+    else if(PiPlusCounter == 1 && PiMinusCounter == 1)
+    {
+      if(status_prot &&  status_pi[piplIndexCounter[0]] && !status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[0]]++; //the pipl is det
+      if(status_prot && !status_pi[piplIndexCounter[0]] &&  status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[0]]++; //the pimi is det
+    }
+    else if(targetCharge == 0) //Previous logic to avoid seg fault errors 6.29.22 -> Previous logic did not account for detection of diff pion charges
+    {
+      if(status_prot  &&  status_pi[0]  && !status_pi[1] ) N_1p1pi[0]++;
+      if(status_prot  && !status_pi[0]  &&  status_pi[1] ) N_1p1pi[1]++;
+    }
+  }
+  //Check if this is to contribute to pipl or pimi histos
+  if(targetCharge == 1) // contribute to pipl
+  {
+    if(PiPlusCounter == 2 && PiMinusCounter == 0)
+    {
+      for(int h = 0; h<N_pi; h++) //Go over two pions that are the same (both pipl)
+      {
+        prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
+        if(N_all!=0)
+        {
           P_1p1pi[h] = -(N_1p1pi[h]/N_all);
-         else
-          P_1p1pi[h]=0; //N_all!=0 statement
-       }
-     }
-     else if(PiPlusCounter == 1 && PiMinusCounter == 1)
-     {
-       prot1_pi1_en_calc(V4prot, V4pi[pimiIndexCounter[0]], q_pi[pimiIndexCounter[0]], V4_el, &Ecal[2], &p_miss_perp[2]);
-       if(N_all!=0)
-         P_1p1pi[2] = -(N_1p1pi_diff[pimiIndexCounter[0]]/N_all);
-       else
-         P_1p1pi[2] = 0;
-     }
-    }
-    else if(targetCharge == 0)
-    {
-     //----------------------1p2pi->1p1pi
-     for(int h=0;h<N_pi;h++)
-     {
-       prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
-       if(N_all!=0)
-        P_1p1pi[h] = -(N_1p1pi[h]/N_all);
-       else
+        }
+        else
         P_1p1pi[h]=0; //N_all!=0 statement
-     }
+      }
     }
-    else
+    else if(PiPlusCounter == 1 && PiMinusCounter == 1)
     {
-     std::cout << "This should not happen!" << std::endl;
+      prot1_pi1_en_calc(V4prot, V4pi[piplIndexCounter[0]], q_pi[piplIndexCounter[0]], V4_el, &Ecal[2], &p_miss_perp[2]);
+      if(N_all!=0)
+      {
+        P_1p1pi[2] = -(N_1p1pi_diff[piplIndexCounter[0]]/N_all);
+      }
+      else
+        P_1p1pi[2] = 0;
     }
+  }
+
+  else if(targetCharge == -1)
+  {
+    if(PiPlusCounter == 0 && PiMinusCounter == 2)
+    {
+      for(int h = 0; h<N_pi; h++)
+      {
+        prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
+        if(N_all!=0)
+        P_1p1pi[h] = -(N_1p1pi[h]/N_all);
+        else
+        P_1p1pi[h]=0; //N_all!=0 statement
+      }
+    }
+    else if(PiPlusCounter == 1 && PiMinusCounter == 1)
+    {
+      prot1_pi1_en_calc(V4prot, V4pi[pimiIndexCounter[0]], q_pi[pimiIndexCounter[0]], V4_el, &Ecal[2], &p_miss_perp[2]);
+      if(N_all!=0)
+        P_1p1pi[2] = -(N_1p1pi_diff[pimiIndexCounter[0]]/N_all);
+      else
+        P_1p1pi[2] = 0;
+    }
+  }
+  else if(targetCharge == 0)
+  {
+    //----------------------1p2pi->1p1pi
+    for(int h=0;h<N_pi;h++)
+    {
+      prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
+      if(N_all!=0)
+      P_1p1pi[h] = -(N_1p1pi[h]/N_all);
+      else
+      P_1p1pi[h]=0; //N_all!=0 statement
+    }
+  }
+  else
+  {
+    std::cout << "This should not happen!" << std::endl;
+  }
 }
 
 
-void Subtraction::prot1_pi3_rot_func(TVector3  V3prot, TVector3 V3pi[3], TLorentzVector V4prot, TLorentzVector V4pi[3], int q_pi[3], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_tot[3])
+void Subtraction::prot1_pi3_rot_func(TVector3  V3prot, TVector3 V3pi[3], TLorentzVector V4prot, TLorentzVector V4pi[3], int q_pi[3], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_tot[3], int targetCharge)
 {
     const int N_pi=3;
     double P_1p3pito1p1pi[3] = {0};
     double rotation_ang;
     TVector3 V3_rot_pi[N_pi], V3_p_rot;
     bool status_pi[N_pi]={true};
+    bool status_prot = true;
     double N_all = 0;
-    double N_1p1pi[3]={0},N_1p2pi[3]={0};
+    double N_1p1pi[3]={0},N_1p2pi[3]={0}, N_1p1pi_diff[3] = {0};
+    std::map<std::string, double> N_1p2pi_diff;
+    N_1p2pi_diff["++"] = 0.0;
+    N_1p2pi_diff["+-"] = 0.0;
+    N_1p2pi_diff["-+"] = 0.0;
+    N_1p2pi_diff["--"] = 0.0;
 
-    for(int g=0; g<N_tot; g++)
+
+    //Imeplmenting charge selection
+    std::vector<int> piplIndexCounter; 
+    std::vector<int> pimiIndexCounter;
+    int PiPlusCounter = 0; 
+    int PiMinusCounter = 0;
+    //Implementing charge selection
+    for(int i = 0; i < N_pi; i++)
+    {
+      if(q_pi[i] == 1)
+      {
+        piplIndexCounter.push_back(i); 
+        PiPlusCounter++;
+      }
+      else if(q_pi[i] == -1)
+      {
+        pimiIndexCounter.push_back(i); 
+        PiMinusCounter++;
+      }
+    }
+
+
+    for(int g=0; g < N_tot; g++)
     {
      rotation_ang=gRandom->Uniform(0,2*TMath::Pi());
      V3_p_rot= V3prot;
 
      V3_p_rot.Rotate(rotation_ang,V3q);
+     
+     status_prot = PFiducialCut(fbeam_en, V3_p_rot);
 
      for(int i=0;i<N_pi;i++)
      {
@@ -211,16 +207,99 @@ void Subtraction::prot1_pi3_rot_func(TVector3  V3prot, TVector3 V3pi[3], TLorent
         V3_rot_pi[i].Rotate(rotation_ang,V3q);
         status_pi[i]=Pi_phot_fid_united(fbeam_en, V3_rot_pi[i],q_pi[i]);
      }
+      //All pions are detected
+      if(status_prot && status_pi[0] && status_pi[1] && status_pi[2]) N_all++;
+      //Case that there are 3 pions that are pipl
+      if(targetCharge == 1 && PiPlusCounter == 3)
+      {
+        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] && !status_pi[piplIndexCounter[2]]) N_1p1pi[0]++;
+        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[piplIndexCounter[2]]) N_1p1pi[1]++;
+        if(status_prot  && !status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[piplIndexCounter[2]]) N_1p1pi[2]++;
+        if(status_prot  &&  status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[piplIndexCounter[2]]) N_1p2pi[0]++;
+        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[piplIndexCounter[2]]) N_1p2pi[1]++;
+        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] &&  status_pi[piplIndexCounter[2]]) N_1p2pi[2]++;
+      }
+      else if(targetCharge == 1 && PiPlusCounter == 1 && PiMinusCounter == 2)
+      {
+        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[pimiIndexCounter[0]] && !status_pi[pimiIndexCounter[1]]) N_1p1pi_diff[piplIndexCounter[0]]++;
+        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[pimiIndexCounter[0]] && !status_pi[pimiIndexCounter[1]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
+        if(status_prot  && !status_pi[piplIndexCounter[0]]  && !status_pi[pimiIndexCounter[0]] &&  status_pi[pimiIndexCounter[1]]) N_1p1pi_diff[pimiIndexCounter[1]]++;
+        if(status_prot  &&  status_pi[piplIndexCounter[0]]  &&  status_pi[pimiIndexCounter[0]] && !status_pi[pimiIndexCounter[1]]) N_1p2pi_diff["+-"]++;
+        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[pimiIndexCounter[0]] &&  status_pi[pimiIndexCounter[1]]) N_1p2pi_diff["+-"]++;
+        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[pimiIndexCounter[0]] &&  status_pi[pimiIndexCounter[1]]) N_1p2pi_diff["--"]++;
+      }
+      else if(targetCharge == 1 && PiPlusCounter == 2 && PiMinusCounter == 1)
+      {
+        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] && !status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[0]]++;
+        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[1]]++;
+        if(status_prot  && !status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
+        if(status_prot  &&  status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[pimiIndexCounter[0]]) N_1p2pi_diff["++"]++;
+        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[pimiIndexCounter[0]]) N_1p2pi_diff["+-"]++;
+        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] &&  status_pi[pimiIndexCounter[0]]) N_1p2pi_diff["+-"]++;
+      }
+      else if(targetCharge == -1 && PiMinusCounter == 3)
+      {
+        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] && !status_pi[pimiIndexCounter[2]]) N_1p1pi[0]++;
+        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[pimiIndexCounter[2]]) N_1p1pi[1]++;
+        if(status_prot  && !status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[pimiIndexCounter[2]]) N_1p1pi[2]++;
+        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[pimiIndexCounter[2]]) N_1p2pi[0]++;
+        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[pimiIndexCounter[2]]) N_1p2pi[1]++;
+        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] &&  status_pi[pimiIndexCounter[2]]) N_1p2pi[2]++;
+      }
+      else if(targetCharge == -1 && PiPlusCounter == 2 && PiMinusCounter == 1)
+      {
+        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[piplIndexCounter[0]] && !status_pi[piplIndexCounter[1]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
+        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[piplIndexCounter[0]] && !status_pi[piplIndexCounter[1]]) N_1p1pi_diff[piplIndexCounter[0]]++;
+        if(status_prot  && !status_pi[pimiIndexCounter[0]]  && !status_pi[piplIndexCounter[0]] &&  status_pi[piplIndexCounter[1]]) N_1p1pi_diff[piplIndexCounter[1]]++;
+        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  &&  status_pi[piplIndexCounter[0]] && !status_pi[piplIndexCounter[1]]) N_1p2pi_diff["-+"]++;
+        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[piplIndexCounter[0]] &&  status_pi[piplIndexCounter[1]]) N_1p2pi_diff["-+"]++;
+        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[piplIndexCounter[0]] &&  status_pi[piplIndexCounter[1]]) N_1p2pi_diff["++"]++;
+      }
+      else if(targetCharge == 1 && PiPlusCounter == 1 && PiMinusCounter == 2)
+      {
+        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] && !status_pi[piplIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
+        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[piplIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[1]]++;
+        if(status_prot  && !status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[piplIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[0]]++;
+        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[piplIndexCounter[0]]) N_1p2pi_diff["--"]++;
+        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[piplIndexCounter[0]]) N_1p2pi_diff["-+"]++;
+        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] &&  status_pi[piplIndexCounter[0]]) N_1p2pi_diff["-+"]++;
+      }
+      else if(targetCharge == 0) // Prevents seg fault errors
+      {
+        if(status_prot  &&  status_pi[0]  && !status_pi[1] && !status_pi[2]) N_1p1pi[0]++;
+        if(status_prot  && !status_pi[0]  &&  status_pi[1] && !status_pi[2]) N_1p1pi[1]++;
+        if(status_prot  && !status_pi[0]  && !status_pi[1] &&  status_pi[2]) N_1p1pi[2]++;
+        if(status_prot  &&  status_pi[0]  &&  status_pi[1] && !status_pi[2]) N_1p2pi[0]++;
+        if(status_prot  &&  status_pi[0]  && !status_pi[1] &&  status_pi[2]) N_1p2pi[1]++;
+        if(status_prot  && !status_pi[0]  &&  status_pi[1] &&  status_pi[2]) N_1p2pi[2]++;
+      }
 
-     if(PFiducialCut(fbeam_en, V3_p_rot)  && status_pi[0]  && !status_pi[1] && !status_pi[2]) N_1p1pi[0]=N_1p1pi[0]+1;
-     if(PFiducialCut(fbeam_en, V3_p_rot)  && !status_pi[0]  && status_pi[1] && !status_pi[2]) N_1p1pi[1]=N_1p1pi[1]+1;
-     if(PFiducialCut(fbeam_en, V3_p_rot)  && !status_pi[0]  && !status_pi[1] && status_pi[2]) N_1p1pi[2]=N_1p1pi[2]+1;
-     if(PFiducialCut(fbeam_en, V3_p_rot)  && status_pi[0]  && status_pi[1] && !status_pi[2]) N_1p2pi[0]=N_1p2pi[0]+1;
-     if(PFiducialCut(fbeam_en, V3_p_rot)  && status_pi[0]  && !status_pi[1] && status_pi[2]) N_1p2pi[1]=N_1p2pi[1]+1;
-     if(PFiducialCut(fbeam_en, V3_p_rot)  && !status_pi[0]  && status_pi[1] && status_pi[2]) N_1p2pi[2]=N_1p2pi[2]+1;
-     if(PFiducialCut(fbeam_en, V3_p_rot)  && status_pi[0]  && status_pi[1] && status_pi[2])  N_all=N_all+1;
     }
-    for(int i=0;i<3;i++)
+    //Check contribution
+    if(targetCharge == 1)
+    {
+      if(PiPlusCounter == 3)
+      {
+        //Loop over three pions
+        for (int i = 0; i < N_pi; i++)
+        {
+          if(N_all != 0)
+          {
+            P_1p3pito1p1pi[i] = -(N_1p1pi[i]/N_all);
+          }
+          else 
+          {
+            P_1p3pito1p1pi[i] = 0.0;
+          }
+        }     
+      }
+      else if(PiPlusCounter == 2 && PiMinusCounter == 1)
+      {
+        //Implement diff counts
+      }
+    }
+
+    for(int i=0; i< N_pi; i++)
     {
       if(N_all!=0)
       {
@@ -323,111 +402,106 @@ void Subtraction::prot2_pi1_rot_func(TLorentzVector V4_2prot_uncorr[2], TLorentz
 }
 
 
-void Subtraction::prot2_pi2_rot_func(TVector3 V3_2prot_corr[2],TVector3 V3_2prot_uncorr[2],TVector3 V3_2pi[2], TLorentzVector V4_2prot_corr[2], TLorentzVector V4_2pi[2], int q_pi[2], TLorentzVector V4_el, double Ecal[2][2], double p_miss_perp[2][2], double P_tot_2p[2][2], int Selection)
+void Subtraction::prot2_pi2_rot_func(TLorentzVector V4_2prot_uncorr[2], TLorentzVector V4_el, TLorentzVector V4_2pi[2], TVector3 V3_q, int q_pi[2], double Ecal[2][2], double p_miss_perp[2][2], double P_tot_2p[2][2])
 {
-  //Let int selection decide which way we are going to subtract -> 0 all subs, 1- 1step, 2 - 2step
-    const int num_prot=2,num_pi=2;
-    TVector3 V3_2p_rotated[num_prot],V3_2pirot[num_pi];
-    bool pi2_stat[num_pi]={true};
-    double rot_angle;
-    double N_2p_1pi[num_pi]={0},N_1p_2pi[num_prot]={0},N_all=0,N_1p_1pi[num_prot][num_pi]={0};
-    double N_pidet=0,N_piundet=0;
-    double P_2pto1p[num_prot]={0},N_2p_det=0;
-    double P_1p1pi[num_pi]={0};
-    double P_2p1pito1p1pi[2]={0},Ptot=0;
-    double P_2p2pito1p1pi[num_prot]={0},P_2p2pito1p2pi[num_prot]={0},P_2p2pito2p1pi[num_prot]={0};
-    P_tot_2p[0][0] = P_tot_2p[0][1] = P_tot_2p[1][0] = P_tot_2p[1][1] = 0;
+  const int num_prot=2,num_pi=2;
+  TVector3 V3_2p_rotated[num_prot],V3_2pirot[num_pi];
+  bool pi2_stat[num_pi]={true};
+  double rot_angle;
+  double N_2p_1pi[num_pi]={0},N_1p_2pi[num_prot]={0},N_all=0,N_1p_1pi[num_prot][num_pi]={0};
+  double N_pidet=0,N_piundet=0;
+  double P_2pto1p[num_prot]={0},N_2p_det=0;
+  double P_1p1pi[num_pi]={0};
+  double P_2p1pito1p1pi[2]={0},Ptot=0;
+  double P_2p2pito1p1pi[num_prot]={0},P_2p2pito1p2pi[num_prot]={0},P_2p2pito2p1pi[num_prot]={0};
+  P_tot_2p[0][0] = P_tot_2p[0][1] = P_tot_2p[1][0] = P_tot_2p[1][1] = 0;
 
-    for(int g=0; g<N_tot; g++){
+  for(int g=0; g<N_tot; g++)
+  {
+    rot_angle=gRandom->Uniform(0,2*TMath::Pi());
 
-       rot_angle=gRandom->Uniform(0,2*TMath::Pi());
-
-       for(int k=0; k<num_pi; k++){
-
-         V3_2p_rotated[k]=V3_2prot_uncorr[k];
-         V3_2p_rotated[k].Rotate(rot_angle,V3q);
-
-
-  	     V3_2pirot[k]=V3_2pi[k];
-  	     V3_2pirot[k].Rotate(rot_angle,V3q);
-  	     pi2_stat[k]=Pi_phot_fid_united(fbeam_en, V3_2pirot[k], q_pi[k]);
-       }
-
-       if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && !pi2_stat[1])  N_2p_1pi[0]++;
-       if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && !pi2_stat[0]  && pi2_stat[1])  N_2p_1pi[1]++;
-       if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && !PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && pi2_stat[1])  N_1p_2pi[0]++;
-       if(!PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && pi2_stat[1])  N_1p_2pi[1]++;
-       if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && !PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && !pi2_stat[1])  N_1p_1pi[0][0]++;
-       if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && !PFiducialCut(fbeam_en, V3_2p_rotated[1]) && !pi2_stat[0]  && pi2_stat[1])  N_1p_1pi[0][1]++;
-       if(!PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && !pi2_stat[1])  N_1p_1pi[1][0]++;
-       if(!PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && !pi2_stat[0]  && pi2_stat[1])  N_1p_1pi[1][1]++;
-       if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && pi2_stat[1])  N_all++;
-     }
-     if(N_all!=0)
-     {
-       double prob2p2pito1p1pi[2][2] = {0};
-     //---------------------------------------------------2p2pi->1p2pi-------------------------------------------------------
-        double P_tot[2] = {0};
-        double Ecal2[2] = {0};
-        double p_miss_perp2[2] = {0};
-        //Energy calculation is const between all subtraction types
-        for(int i=0; i < 2; i++) //Helps avoid segmentation fault error :)
-        {
-          prot1_pi2_rot_func(V3_2prot_uncorr[i], V3_2pi, V4_2prot_corr[i], V4_2pi, q_pi, V4_el, Ecal2, p_miss_perp2, P_tot, 0);
-          Ecal[i][0] = Ecal2[0];
-          Ecal[i][1] = Ecal2[1];
-          p_miss_perp[i][0] = p_miss_perp2[0];
-          p_miss_perp[i][1] = p_miss_perp2[1];
-        }
-
-      if(Selection != 1) //This is to get the 2step Subtraction
-      {
-        for(int i=0;i<2;i++)
-        {
-          //Changed below to reflect the rotation function being performed. From N_2p_1pi -> N_1p_2pi
-          prob2p2pito1p1pi[i][0]= -(N_1p_2pi[i]/N_all)*P_tot[0]; //-> Already made negative when P_Tot is calc
-          prob2p2pito1p1pi[i][1]= -(N_1p_2pi[i]/N_all)*P_tot[1];
-        }
-      //---------------------------------------------------2p2pi->2p1pi->1p1pi-------------------------------------------------------
-        P_tot[0] = P_tot[1] = 0;
-        //Loop twice because we can get this two ways
-        for(int i=0;i<2;i++)
-        {
-          //Ali look here -> Implement prot2_pi1 correctly 
-          //prot2_pi1_rot_func(V3_2prot_corr, V3_2prot_uncorr, V3_2pi[i], V4_2prot_corr, V4_2pi[i], q_pi[i], V4_el, Ecal2, p_miss_perp2, P_tot);
-          //Below is redundant
-          //Ecal[0][i] = Ecal2[0];
-          //Ecal[1][i] = Ecal2[1];
-          p_miss_perp[0][i] = p_miss_perp2[0];
-          p_miss_perp[1][i] = p_miss_perp2[1];
-          prob2p2pito1p1pi[0][i] = -(N_2p_1pi[i]/N_all)*P_tot[0]; //Already made negative in 2p_1pi calc
-          prob2p2pito1p1pi[1][i] = -(N_2p_1pi[i]/N_all)*P_tot[1];
-          //Positive bc it is doubly subtracted ^
-        }
-  }
-    //----------------------------------------------------2p2pi->1p1pi---------------------------------------------------------
-    if(Selection < 2) //We want to get just the 1step sub
+    for(int k=0; k<num_pi; k++)
     {
-      for(int i=0;i<2;i++)
+      V3_2p_rotated[k]=V4_2prot_uncorr[k].Vect();
+      V3_2p_rotated[k].Rotate(rot_angle,V3q);
+
+      V3_2pirot[k]=V4_2pi[k].Vect();
+      V3_2pirot[k].Rotate(rot_angle,V3q);
+      pi2_stat[k]=Pi_phot_fid_united(fbeam_en, V3_2pirot[k], q_pi[k]);
+    }
+
+    if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && !pi2_stat[1])  N_2p_1pi[0]++;
+    if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && !pi2_stat[0]  && pi2_stat[1])  N_2p_1pi[1]++;
+    if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && !PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && pi2_stat[1])  N_1p_2pi[0]++;
+    if(!PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && pi2_stat[1])  N_1p_2pi[1]++;
+    if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && !PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && !pi2_stat[1])  N_1p_1pi[0][0]++;
+    if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && !PFiducialCut(fbeam_en, V3_2p_rotated[1]) && !pi2_stat[0]  && pi2_stat[1])  N_1p_1pi[0][1]++;
+    if(!PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && !pi2_stat[1])  N_1p_1pi[1][0]++;
+    if(!PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && !pi2_stat[0]  && pi2_stat[1])  N_1p_1pi[1][1]++;
+    if(PFiducialCut(fbeam_en, V3_2p_rotated[0]) && PFiducialCut(fbeam_en, V3_2p_rotated[1]) && pi2_stat[0]  && pi2_stat[1])  N_all++;
+  }
+  if(N_all!=0)
+  {    
+    //---------------------------------------------------2p2pi->1p2pi-------------------------------------------------------
+    double prob2p2pito1p1pi[2][2] = {0};
+    double P_tot[2] = {0};
+    double Ecal2[2] = {0};
+    double p_miss_perp2[2] = {0};
+    //Energy calculation is const between all subtraction types
+    TVector3 V3_2pi[2]; 
+    for(int i = 0; i < 2; i++){
+      V3_2pi[i] = V4_2pi[i].Vect();
+    }
+    for(int i=0; i < 2; i++) //Helps avoid segmentation fault error :)
+    {
+      prot1_pi2_rot_func(V4_2prot_uncorr[i].Vect(), V3_2pi, V4_2prot_uncorr[i], V4_2pi, q_pi, V4_el, Ecal2, p_miss_perp2, P_tot, 0);
+      Ecal[i][0] = Ecal2[0];
+      Ecal[i][1] = Ecal2[1];
+      p_miss_perp[i][0] = p_miss_perp2[0];
+      p_miss_perp[i][1] = p_miss_perp2[1];
+    }
+
+    for(int i=0;i<2;i++)
+    {
+      //Changed below to reflect the rotation function being performed. From N_2p_1pi -> N_1p_2pi
+      prob2p2pito1p1pi[i][0]= -(N_1p_2pi[i]/N_all)*P_tot[0]; //-> Already made negative when P_Tot is calc
+      prob2p2pito1p1pi[i][1]= -(N_1p_2pi[i]/N_all)*P_tot[1];
+    }
+    //---------------------------------------------------2p2pi->2p1pi->1p1pi-------------------------------------------------------
+    P_tot[0] = P_tot[1] = 0;
+    //Loop twice because we can get this two ways
+    for(int i=0;i<2;i++)
+    {
+      prot2_pi1_rot_func(V4_2prot_uncorr, V4_el, V4_2pi[i], V3_q, q_pi[i], Ecal[i], p_miss_perp2, P_tot);
+      p_miss_perp[0][i] = p_miss_perp2[0];
+      p_miss_perp[1][i] = p_miss_perp2[1];
+      prob2p2pito1p1pi[0][i] = -(N_2p_1pi[i]/N_all)*P_tot[0]; //Already made negative in 2p_1pi calc
+      prob2p2pito1p1pi[1][i] = -(N_2p_1pi[i]/N_all)*P_tot[1];
+      //Positive bc it is doubly subtracted ^
+    }
+    //----------------------------------------------------2p2pi->1p1pi---------------------------------------------------------
+    for(int i=0;i<2;i++)
+    {
+      for(int j=0;j<2;j++)
       {
-          for(int j=0;j<2;j++)
-          {
-            prob2p2pito1p1pi[i][j] += -N_1p_1pi[i][j]/N_all; //probability = 2stepWeight - 1stepWeight (prob = prob - N1...)
-            P_tot_2p[i][j] = prob2p2pito1p1pi[i][j];
-          }
+        prob2p2pito1p1pi[i][j] += -N_1p_1pi[i][j]/N_all; //probability = 2stepWeight - 1stepWeight (prob = prob - N1...)
+        P_tot_2p[i][j] = prob2p2pito1p1pi[i][j];
       }
     }
-   // P_tot_2p = prob2p2pito1p1pi;
+  }
+  else if(N_all == 0)
+  {
+    P_tot_2p[0][0] = P_tot_2p[0][1] = P_tot_2p[1][0] = P_tot_2p[1][1] = 0;
   }
   else
   {
-    //else (N_all == 0)
-    P_tot_2p[0][0] = P_tot_2p[0][1] = P_tot_2p[1][0] = P_tot_2p[1][1] = 0;
+    //This should not happen 
+    std::cout << "Error - N_all  == 0 && != 0" << std::endl;
   }
 
 }
 
-void Subtraction::prot3_pi1_rot_func(TVector3 V3_3prot_corr[3],TVector3 V3_3prot_uncorr[3],TVector3 V3_pi, TLorentzVector V4_3prot_corr[3], TLorentzVector V4_pi, int q_pi, TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_tot_3p[3], int Selection)
+void Subtraction::prot3_pi1_rot_func(TLorentzVector V4_3prot_uncorr[3], TLorentzVector V4_el, TLorentzVector V4_1pi, TVector3 V3_q, int q_pi, double Ecal[3], double p_miss_perp[3], double P_tot_3p[3], TVector3 V3_3prot_uncorr[3],TVector3 V3_pi, TLorentzVector V4_3prot_corr[3])
 {
     const int N_3prot=3;
     TVector3 V3_3p_rotated[N_3prot],V3_pirot;
@@ -471,15 +545,11 @@ void Subtraction::prot3_pi1_rot_func(TVector3 V3_3prot_corr[3],TVector3 V3_3prot
       for(int z=0;z<N_3prot;z++)
       {
         //---------------------------------- 3p 1pi ->1p 1pi   ----------------------------------------------
-        //- - - - - If the selection is 0 or 1 then do include the 1-step subtraction probability
-        if(Selection<2)
-        {
-          P_3p1pito1p1pi[z] = -(N_1p1pi[z]/N_all);
-        }
+        P_3p1pito1p1pi[z] = -(N_1p1pi[z]/N_all);
        //---------------------------------- 3p 1pi ->2p 1pi   ----------------------------------------------
-       TVector3 V3_prot_corr[2];
        TVector3 V3_prot_uncorr[2];
        TLorentzVector V4_prot_corr[2];
+       TLorentzVector V4_prot_uncorr[2];
        double Ecal2[2] = {0};
        double p_miss_perp2[2] = {0};
        for(int i=0;i<N_3prot;i++)
@@ -490,24 +560,25 @@ void Subtraction::prot3_pi1_rot_func(TVector3 V3_3prot_corr[3],TVector3 V3_3prot
               // 3 pairs of 2proton combinations with z, i indexes(z<i)
               P_2p1pito1p1pi[0]=P_2p1pito1p1pi[1]=0;
               Ptot=0;
-              V3_prot_corr[0] = V3_3prot_corr[z];
-              V3_prot_corr[1] = V3_3prot_corr[i];
-              V3_prot_uncorr[0] = V3_3prot_uncorr[z];
-              V3_prot_uncorr[1] = V3_3prot_uncorr[i];
+              V3_prot_uncorr[0] = V4_3prot_uncorr[z].Vect();
+              V3_prot_uncorr[1] = V4_3prot_uncorr[i].Vect();
+              V4_prot_uncorr[0] = V4_3prot_uncorr[z];
+              V4_prot_uncorr[1] = V4_3prot_uncorr[i];
               V4_prot_corr[0] = V4_3prot_corr[z];
               V4_prot_corr[1] = V4_3prot_corr[z];
+
+              
               //Ali look here -> Implement prot2_pi1 correctly
+              prot2_pi1_rot_func(V4_prot_uncorr, V4_el, V4_1pi, V3_q, q_pi, Ecal2, p_miss_perp2, P_2p1pito1p1pi);
               //prot2_pi1_rot_func(V3_prot_corr,V3_prot_uncorr,V3_pi,V4_prot_corr, V4_pi, q_pi, V4_el, Ecal2, p_miss_perp2, P_2p1pito1p1pi);
               Ecal[z] = Ecal2[0];
               Ecal[i] = Ecal2[1];
               p_miss_perp[z] = p_miss_perp2[0];
               p_miss_perp[i] = p_miss_perp2[1];
-              //- - - - - If the selection is not 1, then perform the 2-step subtraction probability calculation
-              if(Selection != 1)
-              {
-                P_3p1pito2p1pi[z] += -(N_2p1pi[count]/N_all)*(P_2p1pito1p1pi[0]); //Probability will automatically be + in case that it is 2p2pi->1p1pi
-                P_3p1pito2p1pi[i] += -(N_2p1pi[count]/N_all)*(P_2p1pito1p1pi[1]);
-              }
+
+              P_3p1pito2p1pi[z] += -(N_2p1pi[count]/N_all)*(P_2p1pito1p1pi[0]); //Probability will automatically be + in case that it is 2p2pi->1p1pi
+              P_3p1pito2p1pi[i] += -(N_2p1pi[count]/N_all)*(P_2p1pito1p1pi[1]);
+
       	      count=count+1;
       		 }
       		}
@@ -526,9 +597,9 @@ void Subtraction::prot3_pi1_rot_func(TVector3 V3_3prot_corr[3],TVector3 V3_3prot
 
 void Subtraction::prot1_pi1_en_calc(TLorentzVector V4prot, TLorentzVector V4pi, int q_pi, TLorentzVector V4_el, double *Ecal, double *p_miss_perp)
 {
-    double m_prot=0.9382720813;
-    TVector3 V3_total = V4prot.Vect() + V4pi.Vect() + V4_el.Vect();
-    *Ecal = V4_el.E() + V4prot.E() - m_prot + V4pi.E();
-    *p_miss_perp = TMath::Sqrt(V3_total.Px()*V3_total.Px()+V3_total.Py()*V3_total.Py());
+  double m_prot=0.9382720813;
+  TVector3 V3_total = V4prot.Vect() + V4pi.Vect() + V4_el.Vect();
+  *Ecal = V4_el.E() + V4prot.E() - m_prot + V4pi.E();
+  *p_miss_perp = TMath::Sqrt(V3_total.Px()*V3_total.Px()+V3_total.Py()*V3_total.Py());
 }
 #endif

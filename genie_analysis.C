@@ -90,6 +90,7 @@ void genie_analysis::Loop(Int_t choice) {
 	//8.31.22 -> Changed GetEntriesFast() to GetEntries 
 	Long64_t nentries = fChain->GetEntries();
 	Long64_t runEntries = ((double)per_Events/100) * nentries; 
+	std::cout << "Entries: " << runEntries << std::endl;
 	
 	//nentries =8000000;
 
@@ -111,9 +112,9 @@ void genie_analysis::Loop(Int_t choice) {
 	const double pperp_max[n_slice]={0.2,0.4,10.};
 
 
-//	const int n_slice=3; // Stick to the 3 slices
-//	const double pperp_min[n_slice]={0.,0.3,10.};
-//	const double pperp_max[n_slice]={0.3,10.,100.};
+	//	const int n_slice=3; // Stick to the 3 slices
+	//	const double pperp_min[n_slice]={0.,0.3,10.};
+	//	const double pperp_max[n_slice]={0.3,10.,100.};
 
 	TVector3 V3_rotprot1,V3_rotprot2,V3_rotprot3,V3_rot_pi,V3_rotprot;
 
@@ -126,16 +127,26 @@ void genie_analysis::Loop(Int_t choice) {
 	}
 
 
-	if(en_beam[fbeam_en]>2. && en_beam[fbeam_en]<3.) //2.2 GeV Configuration parameters and cuts
+	else if(en_beam[fbeam_en]>2. && en_beam[fbeam_en]<3.) //2.2 GeV Configuration parameters and cuts
 	{
 		E_acc_file="2_261";
 		Q2cut = 0.4;
 	}
 
-	if(en_beam[fbeam_en]>4. && en_beam[fbeam_en]<5.) //4.4 GeV Configuration parameters and cuts
+	else if(en_beam[fbeam_en]>4. && en_beam[fbeam_en]<5.) //4.4 GeV Configuration parameters and cuts
 	{
 		E_acc_file="4_461";
 		Q2cut = 0.8;
+	}
+
+	/**
+	 * 12.1.2022
+	 * @brief If there is no beam energy within our target range, exit the program
+	 */
+	else
+	{
+		std::cout << "Please specify an energy from the following: 1161, 2261, 4461" << std::endl;
+		return;
 	}
 
 	//Further constants for binding energies and target masses
@@ -258,14 +269,14 @@ void genie_analysis::Loop(Int_t choice) {
         //      TString TweakedVariable = "EmpiricalMEC-FracEMQE";
 
 
-//	TFile *fweights = new TFile("/w/hallb-scifs17exp/clas/claseg2/apapadop/myWeights/weights_"+TweakedVariable+"_"+TString(ftarget)+"_"+TString(fbeam_en)+".root");
-//	TTree *tweights = (TTree*)fweights->Get(TweakedVariable);
-//	int NtweightsEntries = tweights->GetEntries();
+		//	TFile *fweights = new TFile("/w/hallb-scifs17exp/clas/claseg2/apapadop/myWeights/weights_"+TweakedVariable+"_"+TString(ftarget)+"_"+TString(fbeam_en)+".root");
+		//	TTree *tweights = (TTree*)fweights->Get(TweakedVariable);
+		//	int NtweightsEntries = tweights->GetEntries();
 
-//	TArrayF* weights = NULL;
-//	double fArray;
-//	tweights->SetBranchAddress("weights", &weights);
-//	int Ntfileentries = fChain->GetEntries();
+		//	TArrayF* weights = NULL;
+		//	double fArray;
+		//	tweights->SetBranchAddress("weights", &weights);
+		//	int Ntfileentries = fChain->GetEntries();
 
 	// ---------------------------------------------------------------------------------------------------------------
 
@@ -479,29 +490,29 @@ void genie_analysis::Loop(Int_t choice) {
 	TH2F* h2_QVector_theta_phi = new TH2F("h2_QVector_theta_phi","",200,0,360,200,0,80);
 
 	//Binning for energy reconstruction histograms
-//	int n_bins;
-//	double *x_values;
-//
-//	if(en_beam[fbeam_en]>1. && en_beam[fbeam_en]<2.){
-//		n_bins=38;
-//		x_values=new double[n_bins+1];
-//		for (int i=0;i<=17;i++) x_values[i]=0.4+i*0.04;
-//		for (int i=0;i<=20;i++) x_values[i+18]=1.08+(i+1)*0.02;
-//	}
-//
-//	if(en_beam[fbeam_en]>2. && en_beam[fbeam_en]<3.){
-//		n_bins=54;
-//		x_values=new double[n_bins+1];
-//		for (int i=0;i<=23;i++) x_values[i]=i*0.09;
-//		for (int i=0;i<=30;i++) x_values[i+24]=2.07+(i+1)*0.03;
-//	}
-//
-//	if(en_beam[fbeam_en]>4. && en_beam[fbeam_en]<5.){
-//		n_bins=38;
-//		x_values=new double[n_bins+1];
-//		for (int i=0;i<=21;i++)	x_values[i]=i*0.2;
-//		for (int i=0;i<=16;i++)	x_values[i+22]=4.2+(i+1)*0.05;
-//	}
+	//	int n_bins;
+	//	double *x_values;
+	//
+	//	if(en_beam[fbeam_en]>1. && en_beam[fbeam_en]<2.){
+	//		n_bins=38;
+	//		x_values=new double[n_bins+1];
+	//		for (int i=0;i<=17;i++) x_values[i]=0.4+i*0.04;
+	//		for (int i=0;i<=20;i++) x_values[i+18]=1.08+(i+1)*0.02;
+	//	}
+	//
+	//	if(en_beam[fbeam_en]>2. && en_beam[fbeam_en]<3.){
+	//		n_bins=54;
+	//		x_values=new double[n_bins+1];
+	//		for (int i=0;i<=23;i++) x_values[i]=i*0.09;
+	//		for (int i=0;i<=30;i++) x_values[i+24]=2.07+(i+1)*0.03;
+	//	}
+	//
+	//	if(en_beam[fbeam_en]>4. && en_beam[fbeam_en]<5.){
+	//		n_bins=38;
+	//		x_values=new double[n_bins+1];
+	//		for (int i=0;i<=21;i++)	x_values[i]=i*0.2;
+	//		for (int i=0;i<=16;i++)	x_values[i+22]=4.2+(i+1)*0.05;
+	//	}
 
 	//Definitions of further Histograms
 	TH1F *h1_E_rec_2p_det = new TH1F("h1_E_rec_2p_det","",n_bins,x_values);
@@ -561,24 +572,10 @@ void genie_analysis::Loop(Int_t choice) {
 	TH1F *h1_E_tot_3p1pi_pimi	= new TH1F("h1_E_tot_3p1pi_pimi","",n_bins,x_values);
 	TH1F *h1_E_rec_3p1pi_pipl	= new TH1F("h1_E_rec_3p1pi_pipl","",n_bins,x_values);
   	TH1F *h1_E_rec_3p1pi_pimi	= new TH1F("h1_E_rec_3p1pi_pimi","",n_bins,x_values);
-	TH1F *h1_E_tot_2p1pi_1p1pi_pipl	= new TH1F("ubuntu","",n_bins,x_values);
+	TH1F *h1_E_tot_2p1pi_1p1pi_pipl	= new TH1F("h1_E_tot_2p1pi_1p1pi_pipl","",n_bins,x_values);
 	TH1F *h1_E_tot_2p1pi_1p1pi_pimi	= new TH1F("h1_E_tot_2p1pi_1p1pi_pimi","",n_bins,x_values);
 	TH1F *h1_E_rec_2p1pi_1p1pi_pipl	= new TH1F("h1_E_rec_2p1pi_1p1pi_pipl","",n_bins,x_values);
 	TH1F *h1_E_rec_2p1pi_1p1pi_pimi= new TH1F("h1_E_rec_2p1pi_1p1pi_pimi","",n_bins,x_values);
-
-/*
-	//2step and 1step histograms for 2p2pi analysis
-	TH1F *h1_E_tot_2p2pi_pipl_1step = new TH1F("h1_E_tot_2p2pi_pipl_1step","",n_bins, x_values);
-	TH1F *h1_E_tot_2p2pi_pipl_2step = new TH1F("h1_E_tot_2p2pi_pipl_2step","",n_bins, x_values);
-	TH1F *h1_E_tot_2p2pi_pimi_1step = new TH1F("h1_E_tot_2p2pi_pimi_1step","",n_bins, x_values);
-	TH1F *h1_E_tot_2p2pi_pimi_2step = new TH1F("h1_E_tot_2p2pi_pimi_2step","",n_bins, x_values);
-	//2step and 1step histograms for 3p1pi analysis
-	TH1F *h1_E_tot_3p1pi_pipl_1step = new TH1F("h1_E_tot_3p1pi_pipl_1step","",n_bins, x_values);
-	TH1F *h1_E_tot_3p1pi_pipl_2step = new TH1F("h1_E_tot_3p1pi_pipl_2step","",n_bins, x_values);
-	TH1F *h1_E_tot_3p1pi_pimi_1step = new TH1F("h1_E_tot_3p1pi_pimi_1step","",n_bins, x_values);
-	TH1F *h1_E_tot_3p1pi_pimi_2step = new TH1F("h1_E_tot_3p1pi_pimi_2step","",n_bins, x_values);
-*/
-	//
 	//TH1F *h1_E_tot_1p2pi_pipl_const_bin	= new TH1F("h1_E_tot_1p2pi_pipl_const_bin","",54,0,8.);
 	//TH1F *h1_E_tot_1p2pi_pimi_const_bin	= new TH1F("h1_E_tot_1p2pi_pimi_const_bin","",54,0,8.);
 	//TH1F *h1_E_tot_2p2pi_pipl_const_bin	= new TH1F("h1_E_tot_2p2pi_pipl_const_bin","",54,0,8.);
@@ -592,18 +589,19 @@ void genie_analysis::Loop(Int_t choice) {
 	//TH1F *h1_E_rec_2p2pi_pipl	= new TH1F("h1_E_rec_2p2pi_pipl","",n_bins,x_values);
 	//TH1F *h1_E_rec_2p2pi_pimi	= new TH1F("h1_E_rec_2p2pi_pimi","",n_bins,x_values);
 	//TH1F *h1_E_rec_3p1pi_pipl	= new TH1F("h1_E_rec_3p1pi_pipl","",n_bins,x_values);
-  //TH1F *h1_E_rec_3p1pi_pimi	= new TH1F("h1_E_rec_3p1pi_pimi","",n_bins,x_values);
+    //TH1F *h1_E_rec_3p1pi_pimi	= new TH1F("h1_E_rec_3p1pi_pimi","",n_bins,x_values);
 	//TH1F *h1_E_rec_2p1pi_1p1pi_pipl	= new TH1F("h1_E_rec_2p1pi_1p1pi_pipl","",n_bins,x_values);
 	//TH1F *h1_E_rec_2p1pi_1p1pi_pimi= new TH1F("h1_E_rec_2p1pi_1p1pi_pimi","",n_bins,x_values);
-
+	
+	//Plots for testing
+	TH1F *h1_E_tot_1p3pi_pipl_test	= new TH1F("h1_E_tot_1p3pi_pipl_test","",n_bins,x_values);
+	TH1F *h1_E_tot_1p3pi_pimi_test	= new TH1F("h1_E_tot_1p3pi_pimi_test","",n_bins,x_values);
 	//Plots for E_Cal
 	//11.3.21 EDIT: All events with at least 1p1pi
 	TH1F *h1_E_cal_1p1pi_pimi_tot = new TH1F("h1_E_cal_1p1pi_pimi_tot","",n_bins,x_values);
 	TH1F *h1_E_cal_1p1pi_pipl_tot = new TH1F("h1_E_cal_1p1pi_pipl_tot","",n_bins,x_values);
 	TH1F *h1_E_cal_1p1pi_pimi_ONLY = new TH1F("h1_E_cal_1p1pi_pimi_ONLY","",n_bins,x_values);
 	TH1F *h1_E_cal_1p1pi_pipl_ONLY = new TH1F("h1_E_cal_1p1pi_pipl_ONLY","",n_bins,x_values);
-	//h1_E_cal_pimi_sub is already here
-	//h1_E_cal_pipl_sub is already here
 
 	//genie_truth analysis histograms and true undetected histograms
 	TH1F* h1_E_cal_1p1pi_pimi_TRUE = new TH1F("h1_E_cal_1p1pi_pimi_TRUE","",n_bins, x_values);
@@ -620,10 +618,13 @@ void genie_analysis::Loop(Int_t choice) {
 	//true undetected histograms
 	TH1F* h1_E_cal_1p1pi_pimi_2pNotDetected 		= new TH1F("h1_E_cal_1p1pi_pimi_2pNotDetected", "", n_bins, x_values);
 	TH1F* h1_E_cal_1p1pi_pimi_2piNotDetected 		= new TH1F("h1_E_cal_1p1pi_pimi_2piNotDetected", "", n_bins, x_values);
+	TH1F* h1_E_cal_1p1pi_pimi_3piNotDetected 		= new TH1F("h1_E_cal_1p1pi_pimi_3piNotDetected", "", n_bins, x_values);
 	TH1F* h1_E_cal_1p1pi_pimi_2p2piNotDetected 	= new TH1F("h1_E_cal_1p1pi_pimi_2p2piNotDetected", "", n_bins, x_values);
 	TH1F* h1_E_cal_1p1pi_pipl_2pNotDetected 		= new TH1F("h1_E_cal_1p1pi_pipl_2pNotDetected", "", n_bins, x_values);
 	TH1F* h1_E_cal_1p1pi_pipl_2piNotDetected 		= new TH1F("h1_E_cal_1p1pi_pipl_2piNotDetected", "", n_bins, x_values);
+	TH1F* h1_E_cal_1p1pi_pipl_3piNotDetected 		= new TH1F("h1_E_cal_1p1pi_pipl_3piNotDetected", "", n_bins, x_values);
 	TH1F* h1_E_cal_1p1pi_pipl_2p2piNotDetected 	= new TH1F("h1_E_cal_1p1pi_pipl_2p2piNotDetected", "", n_bins, x_values);
+	
 	//Added detected histograms
 	TH1F *h1_E_cal_2p1pi_pipl_det = new TH1F("h1_E_cal_2p1pi_pipl_det","",n_bins,x_values);
 	TH1F *h1_E_cal_2p1pi_pimi_det = new TH1F("h1_E_cal_2p1pi_pimi_det","",n_bins,x_values);
@@ -778,14 +779,14 @@ void genie_analysis::Loop(Int_t choice) {
 	//{
 	//	FileName = Form("genie_e2a_ep_%s_%s_neutrino6_united4_radphot_test.root",ftarget.c_str(),fbeam_en.c_str());
 	//}
-//	TFile*FilteredFile = new TFile(FileName, "Recreate");
-//	TTree *maketreenew = fChain->GetTree()->CloneTree(0);
+    //	TFile*FilteredFile = new TFile(FileName, "Recreate");
+    //	TTree *maketreenew = fChain->GetTree()->CloneTree(0);
 
 	// ---------------------------------------------------------------------------------------------------------------
 
 	// Get the number of events to run overall
 
-//	int Nentries = TMath::Min(Ntfileentries,NtweightsEntries);
+    //	int Nentries = TMath::Min(Ntfileentries,NtweightsEntries);
 
 	// ---------------------------------------------------------------------------------------------------------------
 	Long64_t firstEntry = 0;
@@ -813,7 +814,7 @@ void genie_analysis::Loop(Int_t choice) {
 
 	/** Beginning of Event Loop **/
 	//for (Long64_t jentry=0; jentry<nentries;jentry++)
-	for(Long64_t jentry = 0; jentry < 1000000; jentry++)
+	for(Long64_t jentry = 0; jentry < runEntries; jentry++)
 	{
        //	for (Long64_t jentry=0; jentry<Nentries;jentry++) {
 
@@ -878,14 +879,14 @@ void genie_analysis::Loop(Int_t choice) {
 
 			// GENIE Systematic Uncertainties
 
-//			tweights->GetEntry(jentry);
-//			float* ArrayWeights = weights->GetArray();
+			//			tweights->GetEntry(jentry);
+			//			float* ArrayWeights = weights->GetArray();
 
-////			double TuningWeight = ArrayWeights[0]; // - 1 sigma variation
-////			double TuningWeight = ArrayWeights[1]; // 0 sigma variation
-//			double TuningWeight = ArrayWeights[2]; // + 1 sigma variation
+			////			double TuningWeight = ArrayWeights[0]; // - 1 sigma variation
+			////			double TuningWeight = ArrayWeights[1]; // 0 sigma variation
+			//			double TuningWeight = ArrayWeights[2]; // + 1 sigma variation
 
-//			e_acc_ratio = e_acc_ratio * TuningWeight;
+			//			e_acc_ratio = e_acc_ratio * TuningWeight;
 
 			// --------------------------------------------------------------------------------------------------
 
@@ -946,7 +947,7 @@ void genie_analysis::Loop(Int_t choice) {
 
 		//Set q vector for the following rotations for the subtraction procedure
 		rotation->SetQVector(V3_q);
-//		rotation->PrintQVector();
+		//rotation->PrintQVector();
 
 		h1_el_mom->Fill(V4_el_uncorr.Rho(),WeightIncl);
 		h1_el_mom_ratio->Fill(V4_el.Rho()/V4_el_uncorr.Rho(),WeightIncl);
@@ -1164,7 +1165,7 @@ void genie_analysis::Loop(Int_t choice) {
 			if (pdgf[i] == 22  && pf[i] > 0.3)
 			{
 				continue; //6.29.22 No photons!
-			/*	//genie_truth analysis
+				/*	//genie_truth analysis
 				true_GammaCounter++;
 
 				//Determine photon vector for the cut on radiation photon via angle with respect to the electron
@@ -1229,13 +1230,13 @@ void genie_analysis::Loop(Int_t choice) {
 		}
 
 		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+		
 		//Filling Histograms with multiplicities
 		h1_Npi->Fill(num_pi_det);
-		h1_Nprot->Fill(num_p_det );
+		h1_Nprot->Fill(num_p_det);
+
 		//genie_truth analysis:
 		if(num_p_det == 1 && num_pi_det == 1) //detected 1p and detected 1pi
-		//do sep for det pipl and det pimi (LOOK HERE) -> globally
 		{ //define E_cal up here
 			double E_cal = Ef[index_p[0]] + El + Ef[index_pi[0]] - m_prot;
 			if(true_ProtonCounter == 2 && true_ChargedPionCounter == 1) //2nd proton undetected
@@ -1275,6 +1276,17 @@ void genie_analysis::Loop(Int_t choice) {
 					{
 						cout << "This should not happen. Line 1282" << endl;
 					}
+				}
+			}
+			else if(true_ProtonCounter == 1 && true_ChargedPionCounter == 3)
+			{
+				if(charge_pi[0] == 1)
+				{
+					h1_E_cal_1p1pi_pipl_3piNotDetected->Fill(E_cal, histoweight);
+				}
+				else if(charge_pi[0] == -1)
+				{
+					h1_E_cal_1p1pi_pimi_3piNotDetected->Fill(E_cal, histoweight);
 				}
 			}
 			else if(true_ProtonCounter == 2 && true_ChargedPionCounter == 2)
@@ -1919,7 +1931,8 @@ void genie_analysis::Loop(Int_t choice) {
 
 				//Allows me to select how many steps of subtraction to do
 				int selection[3] = {0, 1, 2};
-				rotation->prot2_pi2_rot_func(V3_2prot_corr,V3_2prot_uncorr,V3_2pi_corr,V4_2prot_corr, V4_2pi_corr, charge_pi,V4_el, Ecal2p2pi, p_miss_perp2p2pi, P_tot_2p, selection[0]);
+				//rotation->prot2_pi2_rot_func(V3_2prot_corr,V3_2prot_uncorr,V3_2pi_corr,V4_2prot_corr, V4_2pi_corr, charge_pi,V4_el, Ecal2p2pi, p_miss_perp2p2pi, P_tot_2p, selection[0]);
+				rotation->prot2_pi2_rot_func(V4_2prot_unsmeared, V4_el, V4_2pi_corr, V3_q, charge_pi, Ecal2p2pi, p_miss_perp2p2pi, P_tot_2p);
 			//	rotation->prot2_pi2_rot_func(V3_2prot_corr,V3_2prot_uncorr,V3_2pi_corr,V4_2prot_corr, V4_2pi_corr, charge_pi,V4_el, Ecal2p2pi, p_miss_perp2p2pi, P_tot_2p_1step, selection[1]);
 			//	rotation->prot2_pi2_rot_func(V3_2prot_corr,V3_2prot_uncorr,V3_2pi_corr,V4_2prot_corr, V4_2pi_corr, charge_pi,V4_el, Ecal2p2pi, p_miss_perp2p2pi, P_tot_2p_2step, selection[2]);
 				double weight_pions = pion_acc_ratio[0] * pion_acc_ratio[1];
@@ -2206,11 +2219,12 @@ void genie_analysis::Loop(Int_t choice) {
 
 				}
 				int selection[3] = {0, 1, 2};
-			//	Double P_tot_3p_1step[3] = {0.0};
-			//	Double P_tot_3p_2step[3] = {0.0};
-				rotation->prot3_pi1_rot_func(V3_prot_corr,V3_prot_uncorr, V3_pi_corr, V4_p_corr, V4_pi_corr, charge_pi[0], V4_el, Ecal_3p1pi, p_miss_perp_3p1pi, P_tot_3p, selection[0]);
-			//	rotation->prot3_pi1_rot_func(V3_prot_corr,V3_prot_uncorr, V3_pi_corr, V4_p_corr, V4_pi_corr, charge_pi[0], V4_el, Ecal_3p1pi, p_miss_perp_3p1pi, P_tot_3p_1step, selection);
-			//	rotation->prot3_pi1_rot_func(V3_prot_corr,V3_prot_uncorr, V3_pi_corr, V4_p_corr, V4_pi_corr, charge_pi[0], V4_el, Ecal_3p1pi, p_miss_perp_3p1pi, P_tot_3p_2step, selection);
+				//	Double P_tot_3p_1step[3] = {0.0};
+				//	Double P_tot_3p_2step[3] = {0.0};
+				rotation->prot3_pi1_rot_func(V4_p_uncorr, V4_el, V4_pi_corr, V3_q, charge_pi[0], Ecal_3p1pi, p_miss_perp_3p1pi, P_tot_3p, V3_prot_corr, V3_pi_corr, V4_p_corr);
+				//rotation->prot3_pi1_rot_func(V3_prot_corr,V3_prot_uncorr, V3_pi_corr, V4_p_corr, V4_pi_corr, charge_pi[0], V4_el, Ecal_3p1pi, p_miss_perp_3p1pi, P_tot_3p, selection[0]);
+				//	rotation->prot3_pi1_rot_func(V3_prot_corr,V3_prot_uncorr, V3_pi_corr, V4_p_corr, V4_pi_corr, charge_pi[0], V4_el, Ecal_3p1pi, p_miss_perp_3p1pi, P_tot_3p_1step, selection);
+				//	rotation->prot3_pi1_rot_func(V3_prot_corr,V3_prot_uncorr, V3_pi_corr, V4_p_corr, V4_pi_corr, charge_pi[0], V4_el, Ecal_3p1pi, p_miss_perp_3p1pi, P_tot_3p_2step, selection);
 				//for CLAS data is histoweight = 1/Mott_cross_sec
 				//double histoweight = pion_acc_ratio * weight_protons * e_acc_ratio * wght/Mott_cross_sec;
 				//Weight for 3protons, 1 pion, 1 electron, GENIE weight and Mott cross section
@@ -2220,7 +2234,7 @@ void genie_analysis::Loop(Int_t choice) {
 					{
 						//11.3.21 EDIT: Added 1p1pi_tot h1 fill
 						h1_E_cal_1p1pi_pipl_tot->Fill(E_cal[j],histoweight);
-					  C3p1piPIPL++;
+					    C3p1piPIPL++;
 						h1_E_tot_3p1pi_pipl->Fill(E_cal[j], P_tot_3p[j]*histoweight);
 					//	h1_E_tot_3p1pi_pipl_1step->Fill(E_cal[j], P_tot_3p_1step[j]*histoweight);
 					//	h1_E_tot_3p1pi_pipl_2step->Fill(E_cal[j], P_tot_3p_2step[j]*histoweight);
@@ -2229,7 +2243,7 @@ void genie_analysis::Loop(Int_t choice) {
 						h2_Erec_pperp_3p1pi_pipl->Fill(p_miss_perp[j],E_rec,P_tot_3p[j]*histoweight);
 						h2_Etot_pperp_pipl->Fill(p_miss_perp[j],E_cal[j],P_tot_3p[j]*histoweight);
 						h1_E_tot_3p1pi_fracfeed_pipl->Fill((E_cal[j]-en_beam_Ecal[fbeam_en])/en_beam_Ecal[fbeam_en], P_tot_3p[j]*histoweight);
-					  h1_E_rec_3p1pi_fracfeed_pipl->Fill((E_rec-en_beam_Eqe[fbeam_en])/en_beam_Eqe[fbeam_en],P_tot_3p[j]*histoweight);
+					    h1_E_rec_3p1pi_fracfeed_pipl->Fill((E_rec-en_beam_Eqe[fbeam_en])/en_beam_Eqe[fbeam_en],P_tot_3p[j]*histoweight);
 						h2_pperp_W_pipl->Fill(W_var,p_miss_perp[j],P_tot_3p[j]*histoweight);
 						h1_theta0_pipl->Fill((V4_beam.Vect()).Angle(V4_el.Vect()+V3_prot_uncorr[j])*TMath::RadToDeg(),P_tot_3p[j]*histoweight);
 						h2_Ecal_Eres_pipl->Fill(E_rec,E_cal[j],P_tot_3p[j]*histoweight);
@@ -2567,7 +2581,7 @@ void genie_analysis::Loop(Int_t choice) {
 				//weight_pions is 1 for CLAS data
 				double weight_pions = pion_acc_ratio[0] * pion_acc_ratio[1];
 				//histoweight is 1/Mott_cross_sec for CLAS data
-			//	double histoweight = weight_pions * p_acc_ratio * e_acc_ratio * wght/Mott_cross_sec;
+				//	double histoweight = weight_pions * p_acc_ratio * e_acc_ratio * wght/Mott_cross_sec;
 				//1proton, 2 Pion, 1 electron acceptance, GENIE weight and Mott
 				//test case to see if calc works
 				double P_1p1pi_pipl[3] = {0};
@@ -2579,7 +2593,7 @@ void genie_analysis::Loop(Int_t choice) {
 				rotation->prot1_pi2_rot_func(V3_prot_uncorr,V3_2pi_corr, V4_prot_corr, V4_2pi_corr, charge_pi, V4_el, Ecal_pipl, p_miss_perp_pipl, P_1p1pi_pipl, 1);
 				rotation->prot1_pi2_rot_func(V3_prot_uncorr,V3_2pi_corr, V4_prot_corr, V4_2pi_corr, charge_pi, V4_el, Ecal_pimi, p_miss_perp_pimi, P_1p1pi_pimi, -1);
 
-				for(int k = 0; k < 3; k++)
+				for(int k = 0; k < 2; k++)
 				{
 					h1_E_tot_1p2pi_pipl->Fill(Ecal_pipl[k],P_1p1pi_pipl[k]*histoweight);
 					h1_E_tot_1p2pi_pimi->Fill(Ecal_pimi[k],P_1p1pi_pimi[k]*histoweight);
@@ -2748,8 +2762,8 @@ void genie_analysis::Loop(Int_t choice) {
 
 			if(num_pi_det == 3)
 			{
-			  C1p3piALL++;
-				const int N_3pi=3;
+			 	C1p3piALL++;
+				const int N_3pi = 3;
 				TVector3 V3_3pi_corr[N_3pi],V3_3pi_rot[N_3pi],V3_p_rot;
 				TLorentzVector V4_3pi_corr[3];
 				double P_1p3pi[3] = {0};
@@ -2794,89 +2808,108 @@ void genie_analysis::Loop(Int_t choice) {
 				} //end loop over num_p_deti
 				double Ecal1p3pi[3] = {0};
 				double p_perp1p3pi[3] = {0};
-				rotation->prot1_pi3_rot_func(V3_prot_uncorr, V3_3pi_corr, V4_prot_corr, V4_3pi_corr, charge_pi, V4_el, Ecal1p3pi, p_perp1p3pi, P_1p3pi);
+				rotation->prot1_pi3_rot_func(V3_prot_uncorr, V3_3pi_corr, V4_prot_corr, V4_3pi_corr, charge_pi, V4_el, Ecal1p3pi, p_perp1p3pi, P_1p3pi, 0);
 		 		//weight_pions is 1 for CLAS data
 				double weight_pions = pion_acc_ratio[0] * pion_acc_ratio[1] * pion_acc_ratio[2];
 				//histoweight is 1/Mott_cross_sec for CLAS data
-			//	double histoweight = weight_pions * p_acc_ratio * e_acc_ratio * wght/Mott_cross_sec;
+				//double histoweight = weight_pions * p_acc_ratio * e_acc_ratio * wght/Mott_cross_sec;
 				//1proton, 3 Pion, 1 electron acceptance, GENIE weight and Mott
+				//Testing new subtraction function 
+				double Ecal1p3pi_pimi[3] = {0};
+				double p_perp1p3pi_pimi[3] = {0};
+				double P_1p3pi_pimi[3] = {0};
+				double Ecal1p3pi_pipl[3] = {0};
+				double p_perp1p3pi_pipl[3] = {0};
+				double P_1p3pi_pipl[3] = {0};
+				rotation->prot1_pi3_rot_func(V3_prot_uncorr, V3_3pi_corr, V4_prot_corr, V4_3pi_corr, charge_pi, V4_el, Ecal1p3pi_pimi, p_perp1p3pi_pimi, P_1p3pi_pimi, -1);
+				rotation->prot1_pi3_rot_func(V3_prot_uncorr, V3_3pi_corr, V4_prot_corr, V4_3pi_corr, charge_pi, V4_el, Ecal1p3pi_pipl, p_perp1p3pi_pipl, P_1p3pi_pipl, 1);
+				for(int z = 0; z < N_3pi; z++)
+				{
+					if(charge_pi[z] == 1)
+					{
+						h1_E_tot_1p3pi_pipl_test->Fill(Ecal1p3pi_pipl[z], P_1p3pi_pipl[z]*histoweight);
+					}
+					else if(charge_pi[z] == -1)
+					{
+						h1_E_tot_1p3pi_pimi_test->Fill(Ecal1p3pi_pimi[z], P_1p3pi_pimi[z]*histoweight);
+					}
+				}
 
 				//---------------------------------- 1p 3pi->1p 0pi  total ?? F.H. 08/13/19 check logic here compared to 1p 2pi case ----------------------------
 				for(int z=0;z<3;z++)
 				{
-				if(charge_pi[z]>0)
-				{
-				  C1p3piPIPL++;
-					//11.3.21 EDIT: Added 1p1pi tot h1
-					h1_E_cal_1p1pi_pipl_tot->Fill(Ecal1p3pi[z], histoweight);
-
-					h1_E_tot_1p3pi_pipl->Fill(Ecal1p3pi[z],P_1p3pi[z]*histoweight);
-				//	h1_E_tot_1p3pi_pipl_const_bin->Fill(Ecal1p3pi[z],P_1p3pi[z]*histoweight);
-					h1_E_rec_1p3pi_pipl->Fill(E_rec,P_1p3pi[z]*histoweight);
-					h2_Erec_pperp_1p3pi_pipl->Fill(p_perp1p3pi[z],E_rec,P_1p3pi[z]*histoweight);
-					h2_Etot_pperp_pipl->Fill(p_perp1p3pi[z],Ecal1p3pi[z],P_1p3pi[z]*histoweight);
-					h1_E_tot_1p3pi_fracfeed_pipl->Fill((Ecal1p3pi[z]-en_beam_Ecal[fbeam_en])/en_beam_Ecal[fbeam_en],P_1p3pi[z]*histoweight);
-					h1_E_rec_1p3pi_fracfeed_pipl->Fill((E_rec-en_beam_Eqe[fbeam_en])/en_beam_Eqe[fbeam_en],P_1p3pi[z]*histoweight);
-					h2_pperp_W_pipl->Fill(W_var,p_perp1p3pi[z],P_1p3pi[z]*histoweight);
-					h1_theta0_pipl->Fill((V4_beam.Vect()).Angle(V4_el.Vect()+V3_prot_uncorr)*TMath::RadToDeg(),P_1p3pi[z]*histoweight);
-					h2_Ecal_Eres_pipl->Fill(E_rec,Ecal1p3pi[z],P_1p3pi[z]*histoweight);
-					h1_Ecal_pipl->Fill(Ecal1p3pi[z],P_1p3pi[z]*histoweight);
-					h1_Ecal_Reso_pipl->Fill((Ecal1p3pi[z]-en_beam_Ecal[fbeam_en])/en_beam_Ecal[fbeam_en],P_1p3pi[z]*histoweight);
-					h2_Ecal_Etrue_pipl->Fill(Ecal1p3pi[z],Ev,P_1p3pi[z]*histoweight);
-					h2_Etrue_Ecal_pipl->Fill(Ev,Ecal1p3pi[z],P_1p3pi[z]*histoweight);
-					h2_EresEcalratio_Eres_pipl->Fill(E_rec,E_rec/Ecal1p3pi[z],P_1p3pi[z]*histoweight);
-					h2_EresEcaldiff_Eres_pipl->Fill(E_rec,E_rec-Ecal1p3pi[z],P_1p3pi[z]*histoweight);
-
-					h1_xbjk_weight_pipl->Fill(x_bjk,P_1p3pi[z]*histoweight);
-					h1_Q2_weight_pipl->Fill(reco_Q2,P_1p3pi[z]*histoweight);
-					h1_Wvar_weight_pipl->Fill(W_var,P_1p3pi[z]*histoweight);
-					h1_nu_weight_pipl->Fill(nu,P_1p3pi[z]*histoweight);
-					h1_el_mom_corr_pipl->Fill(V4_el.Rho(),P_1p3pi[z]*histoweight);
-					h1_prot_mom_pipl->Fill(V3_prot_corr.Mag(),P_1p3pi[z]*histoweight);
-					h1_MissMomentum_pipl->Fill(p_perp1p3pi[z],P_1p3pi[z]*histoweight);
-
-					// -----------------------------------------------------------------------------------------------
-					// apapadop: Reconstruct xB, W, Q2 using Ecal instead of Etrue
-
-					CalKineVars = CalculateCalKineVars(Ecal1p3pi[z],V4_el);
-					LocalWeight = P_1p3pi[z]*histoweight;
-
-					h1_nuCal_weight_pipl->Fill(CalKineVars.at(0),LocalWeight);
-					h1_Q2Cal_weight_pipl->Fill(CalKineVars.at(1),LocalWeight);
-					h1_xbjkCal_weight_pipl->Fill(CalKineVars.at(2),LocalWeight);
-					h1_WvarCal_weight_pipl->Fill(CalKineVars.at(3),LocalWeight);
-
-					h2_Q2_nu_weight_pipl->Fill(nu,reco_Q2,LocalWeight);
-					if (el_phi_mod > 0 && el_phi_mod< 60) {h2_Q2_nu_weight_FirstSector_pipl->Fill(nu,reco_Q2,LocalWeight); }
-
-					// Fill plots based on underlying interactions
-
-					h1_ECal_BreakDown_pipl[0]->Fill(Ecal1p3pi[z],LocalWeight);
-					h1_Eres_BreakDown_pipl[0]->Fill(E_rec,LocalWeight);
-					h1_Pmiss_BreakDown_pipl[0]->Fill(p_perp1p3pi[z],LocalWeight);
-					h1_Q2_BreakDown_pipl[0]->Fill(reco_Q2,LocalWeight);
-					h1_Nu_BreakDown_pipl[0]->Fill(nu,LocalWeight);
-					h1_Pe_BreakDown_pipl[0]->Fill(V4_el.Rho(),LocalWeight);
-
-					if (choice == 1)
+					if(charge_pi[z]>0)
 					{
-						h1_ECal_BreakDown_pipl[Interaction]->Fill(Ecal1p3pi[z],LocalWeight);
-						h1_Eres_BreakDown_pipl[Interaction]->Fill(E_rec,LocalWeight);
-						h1_Pmiss_BreakDown_pipl[Interaction]->Fill(p_perp1p3pi[z],LocalWeight);
-						h1_Q2_BreakDown_pipl[Interaction]->Fill(reco_Q2,LocalWeight);
-						h1_Nu_BreakDown_pipl[Interaction]->Fill(nu,LocalWeight);
-						h1_Pe_BreakDown_pipl[Interaction]->Fill(V4_el.Rho(),LocalWeight);
-					}
+						C1p3piPIPL++;
+						//11.3.21 EDIT: Added 1p1pi tot h1
+						h1_E_cal_1p1pi_pipl_tot->Fill(Ecal1p3pi[z], histoweight);
+						h1_E_tot_1p3pi_pipl->Fill(Ecal1p3pi[z],P_1p3pi[z]*histoweight);
+						//h1_E_tot_1p3pi_pipl_const_bin->Fill(Ecal1p3pi[z],P_1p3pi[z]*histoweight);
+						h1_E_rec_1p3pi_pipl->Fill(E_rec,P_1p3pi[z]*histoweight);
+						h2_Erec_pperp_1p3pi_pipl->Fill(p_perp1p3pi[z],E_rec,P_1p3pi[z]*histoweight);
+						h2_Etot_pperp_pipl->Fill(p_perp1p3pi[z],Ecal1p3pi[z],P_1p3pi[z]*histoweight);
+						h1_E_tot_1p3pi_fracfeed_pipl->Fill((Ecal1p3pi[z]-en_beam_Ecal[fbeam_en])/en_beam_Ecal[fbeam_en],P_1p3pi[z]*histoweight);
+						h1_E_rec_1p3pi_fracfeed_pipl->Fill((E_rec-en_beam_Eqe[fbeam_en])/en_beam_Eqe[fbeam_en],P_1p3pi[z]*histoweight);
+						h2_pperp_W_pipl->Fill(W_var,p_perp1p3pi[z],P_1p3pi[z]*histoweight);
+						h1_theta0_pipl->Fill((V4_beam.Vect()).Angle(V4_el.Vect()+V3_prot_uncorr)*TMath::RadToDeg(),P_1p3pi[z]*histoweight);
+						h2_Ecal_Eres_pipl->Fill(E_rec,Ecal1p3pi[z],P_1p3pi[z]*histoweight);
+						h1_Ecal_pipl->Fill(Ecal1p3pi[z],P_1p3pi[z]*histoweight);
+						h1_Ecal_Reso_pipl->Fill((Ecal1p3pi[z]-en_beam_Ecal[fbeam_en])/en_beam_Ecal[fbeam_en],P_1p3pi[z]*histoweight);
+						h2_Ecal_Etrue_pipl->Fill(Ecal1p3pi[z],Ev,P_1p3pi[z]*histoweight);
+						h2_Etrue_Ecal_pipl->Fill(Ev,Ecal1p3pi[z],P_1p3pi[z]*histoweight);
+						h2_EresEcalratio_Eres_pipl->Fill(E_rec,E_rec/Ecal1p3pi[z],P_1p3pi[z]*histoweight);
+						h2_EresEcaldiff_Eres_pipl->Fill(E_rec,E_rec-Ecal1p3pi[z],P_1p3pi[z]*histoweight);
 
-					// -----------------------------------------------------------------------------------------------
+						h1_xbjk_weight_pipl->Fill(x_bjk,P_1p3pi[z]*histoweight);
+						h1_Q2_weight_pipl->Fill(reco_Q2,P_1p3pi[z]*histoweight);
+						h1_Wvar_weight_pipl->Fill(W_var,P_1p3pi[z]*histoweight);
+						h1_nu_weight_pipl->Fill(nu,P_1p3pi[z]*histoweight);
+						h1_el_mom_corr_pipl->Fill(V4_el.Rho(),P_1p3pi[z]*histoweight);
+						h1_prot_mom_pipl->Fill(V3_prot_corr.Mag(),P_1p3pi[z]*histoweight);
+						h1_MissMomentum_pipl->Fill(p_perp1p3pi[z],P_1p3pi[z]*histoweight);
 
-					for(int i = 0; i < n_slice; i++){
-						if (p_perp1p3pi[z]<pperp_max[i] && p_perp1p3pi[z]>pperp_min[i]){
-							h1_Etot_bkgd_1p3pi_pipl[i]->Fill(Ecal1p3pi[z],P_1p3pi[z]*histoweight);
-							h1_Erec_bkgd_1p3pi_pipl[i]->Fill(E_rec,P_1p3pi[z]*histoweight);
+						// -----------------------------------------------------------------------------------------------
+						// apapadop: Reconstruct xB, W, Q2 using Ecal instead of Etrue
+
+						CalKineVars = CalculateCalKineVars(Ecal1p3pi[z],V4_el);
+						LocalWeight = P_1p3pi[z]*histoweight;
+
+						h1_nuCal_weight_pipl->Fill(CalKineVars.at(0),LocalWeight);
+						h1_Q2Cal_weight_pipl->Fill(CalKineVars.at(1),LocalWeight);
+						h1_xbjkCal_weight_pipl->Fill(CalKineVars.at(2),LocalWeight);
+						h1_WvarCal_weight_pipl->Fill(CalKineVars.at(3),LocalWeight);
+
+						h2_Q2_nu_weight_pipl->Fill(nu,reco_Q2,LocalWeight);
+						if (el_phi_mod > 0 && el_phi_mod< 60) {h2_Q2_nu_weight_FirstSector_pipl->Fill(nu,reco_Q2,LocalWeight); }
+
+						// Fill plots based on underlying interactions
+
+						h1_ECal_BreakDown_pipl[0]->Fill(Ecal1p3pi[z],LocalWeight);
+						h1_Eres_BreakDown_pipl[0]->Fill(E_rec,LocalWeight);
+						h1_Pmiss_BreakDown_pipl[0]->Fill(p_perp1p3pi[z],LocalWeight);
+						h1_Q2_BreakDown_pipl[0]->Fill(reco_Q2,LocalWeight);
+						h1_Nu_BreakDown_pipl[0]->Fill(nu,LocalWeight);
+						h1_Pe_BreakDown_pipl[0]->Fill(V4_el.Rho(),LocalWeight);
+
+						if (choice == 1)
+						{
+							h1_ECal_BreakDown_pipl[Interaction]->Fill(Ecal1p3pi[z],LocalWeight);
+							h1_Eres_BreakDown_pipl[Interaction]->Fill(E_rec,LocalWeight);
+							h1_Pmiss_BreakDown_pipl[Interaction]->Fill(p_perp1p3pi[z],LocalWeight);
+							h1_Q2_BreakDown_pipl[Interaction]->Fill(reco_Q2,LocalWeight);
+							h1_Nu_BreakDown_pipl[Interaction]->Fill(nu,LocalWeight);
+							h1_Pe_BreakDown_pipl[Interaction]->Fill(V4_el.Rho(),LocalWeight);
 						}
-					}
-				}//11.3.21 Minor Bug fix: did the charge stuff :)
+
+						// -----------------------------------------------------------------------------------------------
+
+						for(int i = 0; i < n_slice; i++){
+							if (p_perp1p3pi[z]<pperp_max[i] && p_perp1p3pi[z]>pperp_min[i]){
+								h1_Etot_bkgd_1p3pi_pipl[i]->Fill(Ecal1p3pi[z],P_1p3pi[z]*histoweight);
+								h1_Erec_bkgd_1p3pi_pipl[i]->Fill(E_rec,P_1p3pi[z]*histoweight);
+							}
+						}
+					}//11.3.21 Minor Bug fix: did the charge stuff :)
 				else if(charge_pi[z] < 0)
 				{
 				  C1p3piPIMI++;
@@ -3321,7 +3354,7 @@ void genie_analysis::Loop(Int_t choice) {
 		std::cout << std::endl << "-----------------------------------------------------------------------------------------------------" << std::endl;
 
 	}
-
+	
 }
 
 //End Loop function
