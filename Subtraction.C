@@ -156,125 +156,127 @@ void Subtraction::prot1_pi2_rot_func(TVector3  V3prot, TVector3 V3pi[2], TLorent
 
 void Subtraction::prot1_pi3_rot_func(TVector3  V3prot, TVector3 V3pi[3], TLorentzVector V4prot, TLorentzVector V4pi[3], int q_pi[3], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_tot[3], int targetCharge)
 {
-    const int N_pi=3;
-    double P_1p3pito1p1pi[3] = {0};
-    double rotation_ang;
-    TVector3 V3_rot_pi[N_pi], V3_p_rot;
-    bool status_pi[N_pi]={true};
-    bool status_prot = true;
-    double N_all = 0;
-    double N_1p1pi[3]={0},N_1p2pi[3]={0}, N_1p1pi_diff[3] = {0};
-    std::map<std::string, double> N_1p2pi_diff;
-    N_1p2pi_diff["++"] = 0.0;
-    N_1p2pi_diff["+-"] = 0.0;
-    N_1p2pi_diff["-+"] = 0.0;
-    N_1p2pi_diff["--"] = 0.0;
+  const int N_pi=3;
+  double P_1p3pito1p1pi[3] = {0};
+  double rotation_ang;
+  TVector3 V3_rot_pi[N_pi], V3_p_rot;
+  bool status_pi[N_pi]={true};
+  bool status_prot = true;
+  double N_all = 0;
+  double N_1p1pi[3]={0},N_1p2pi[3]={0}, N_1p1pi_diff[3] = {0};
+  std::map<std::string, double> N_1p2pi_diff;
+  N_1p2pi_diff["++"] = 0.0;
+  N_1p2pi_diff["+-"] = 0.0;
+  N_1p2pi_diff["-+"] = 0.0;
+  N_1p2pi_diff["--"] = 0.0;
 
 
-    //Imeplmenting charge selection
-    std::vector<int> piplIndexCounter; 
-    std::vector<int> pimiIndexCounter;
-    int PiPlusCounter = 0; 
-    int PiMinusCounter = 0;
-    //Implementing charge selection
-    for(int i = 0; i < N_pi; i++)
+  //Imeplmenting charge selection
+  std::vector<int> piplIndexCounter; 
+  std::vector<int> pimiIndexCounter;
+  int PiPlusCounter = 0; 
+  int PiMinusCounter = 0;
+  //Implementing charge selection
+  for(int i = 0; i < N_pi; i++)
+  {
+    if(q_pi[i] == 1)
     {
-      if(q_pi[i] == 1)
-      {
-        piplIndexCounter.push_back(i); 
-        PiPlusCounter++;
-      }
-      else if(q_pi[i] == -1)
-      {
-        pimiIndexCounter.push_back(i); 
-        PiMinusCounter++;
-      }
+      piplIndexCounter.push_back(i); 
+      PiPlusCounter++;
+    }
+    else if(q_pi[i] == -1)
+    {
+      pimiIndexCounter.push_back(i); 
+      PiMinusCounter++;
+    }
+  }
+
+  for(int g=0; g < N_tot; g++)
+  {
+    rotation_ang=gRandom->Uniform(0,2*TMath::Pi());
+    V3_p_rot = V3prot;
+
+    V3_p_rot.Rotate(rotation_ang,V3q);
+    
+    status_prot = PFiducialCut(fbeam_en, V3_p_rot);
+
+    for(int i=0;i<N_pi;i++)
+    {
+      V3_rot_pi[i]=V3pi[i];
+      V3_rot_pi[i].Rotate(rotation_ang,V3q);
+      status_pi[i]=Pi_phot_fid_united(fbeam_en, V3_rot_pi[i],q_pi[i]);
+    }
+    //All pions are detected
+    if(status_prot && status_pi[0] && status_pi[1] && status_pi[2]) N_all++;
+    //Case that there are 3 pions that are pipl
+    if(targetCharge == 1 && PiPlusCounter == 3)
+    {
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] && !status_pi[piplIndexCounter[2]]) N_1p1pi[0]++;
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[piplIndexCounter[2]]) N_1p1pi[1]++;
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[piplIndexCounter[2]]) N_1p1pi[2]++;
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[piplIndexCounter[2]]) N_1p2pi[0]++;
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[piplIndexCounter[2]]) N_1p2pi[1]++;
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] &&  status_pi[piplIndexCounter[2]]) N_1p2pi[2]++;
+    }
+    else if(targetCharge == 1 && PiPlusCounter == 1 && PiMinusCounter == 2)
+    {
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[pimiIndexCounter[0]] && !status_pi[pimiIndexCounter[1]]) N_1p1pi_diff[piplIndexCounter[0]]++;
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[pimiIndexCounter[0]] && !status_pi[pimiIndexCounter[1]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  && !status_pi[pimiIndexCounter[0]] &&  status_pi[pimiIndexCounter[1]]) N_1p1pi_diff[pimiIndexCounter[1]]++;
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  &&  status_pi[pimiIndexCounter[0]] && !status_pi[pimiIndexCounter[1]]) N_1p2pi_diff["+-"]++;
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[pimiIndexCounter[0]] &&  status_pi[pimiIndexCounter[1]]) N_1p2pi_diff["+-"]++;
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[pimiIndexCounter[0]] &&  status_pi[pimiIndexCounter[1]]) N_1p2pi_diff["--"]++;
+    }
+    else if(targetCharge == 1 && PiPlusCounter == 2 && PiMinusCounter == 1)
+    {
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] && !status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[0]]++;
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[1]]++;
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[pimiIndexCounter[0]]) N_1p2pi_diff["++"]++;
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[pimiIndexCounter[0]]) N_1p2pi_diff["+-"]++;
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] &&  status_pi[pimiIndexCounter[0]]) N_1p2pi_diff["+-"]++;
+    }
+    else if(targetCharge == -1 && PiMinusCounter == 3)
+    {
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] && !status_pi[pimiIndexCounter[2]]) N_1p1pi[0]++;
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[pimiIndexCounter[2]]) N_1p1pi[1]++;
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[pimiIndexCounter[2]]) N_1p1pi[2]++;
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[pimiIndexCounter[2]]) N_1p2pi[0]++;
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[pimiIndexCounter[2]]) N_1p2pi[1]++;
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] &&  status_pi[pimiIndexCounter[2]]) N_1p2pi[2]++;
+    }
+    else if(targetCharge == -1 && PiPlusCounter == 2 && PiMinusCounter == 1)
+    {
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[piplIndexCounter[0]] && !status_pi[piplIndexCounter[1]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[piplIndexCounter[0]] && !status_pi[piplIndexCounter[1]]) N_1p1pi_diff[piplIndexCounter[0]]++;
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  && !status_pi[piplIndexCounter[0]] &&  status_pi[piplIndexCounter[1]]) N_1p1pi_diff[piplIndexCounter[1]]++;
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  &&  status_pi[piplIndexCounter[0]] && !status_pi[piplIndexCounter[1]]) N_1p2pi_diff["-+"]++;
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[piplIndexCounter[0]] &&  status_pi[piplIndexCounter[1]]) N_1p2pi_diff["-+"]++;
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[piplIndexCounter[0]] &&  status_pi[piplIndexCounter[1]]) N_1p2pi_diff["++"]++;
+    }
+    else if(targetCharge == 1 && PiPlusCounter == 1 && PiMinusCounter == 2)
+    {
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] && !status_pi[piplIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[piplIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[1]]++;
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[piplIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[0]]++;
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[piplIndexCounter[0]]) N_1p2pi_diff["--"]++;
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[piplIndexCounter[0]]) N_1p2pi_diff["-+"]++;
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] &&  status_pi[piplIndexCounter[0]]) N_1p2pi_diff["-+"]++;
+    }
+    else if(targetCharge == 0) // Prevents seg fault errors
+    {
+      if(status_prot  &&  status_pi[0]  && !status_pi[1] && !status_pi[2]) N_1p1pi[0]++;
+      if(status_prot  && !status_pi[0]  &&  status_pi[1] && !status_pi[2]) N_1p1pi[1]++;
+      if(status_prot  && !status_pi[0]  && !status_pi[1] &&  status_pi[2]) N_1p1pi[2]++;
+      if(status_prot  &&  status_pi[0]  &&  status_pi[1] && !status_pi[2]) N_1p2pi[0]++;
+      if(status_prot  &&  status_pi[0]  && !status_pi[1] &&  status_pi[2]) N_1p2pi[1]++;
+      if(status_prot  && !status_pi[0]  &&  status_pi[1] &&  status_pi[2]) N_1p2pi[2]++;
     }
 
+  }
 
-    for(int g=0; g < N_tot; g++)
-    {
-     rotation_ang=gRandom->Uniform(0,2*TMath::Pi());
-     V3_p_rot= V3prot;
-
-     V3_p_rot.Rotate(rotation_ang,V3q);
-     
-     status_prot = PFiducialCut(fbeam_en, V3_p_rot);
-
-     for(int i=0;i<N_pi;i++)
-     {
-        V3_rot_pi[i]=V3pi[i];
-        V3_rot_pi[i].Rotate(rotation_ang,V3q);
-        status_pi[i]=Pi_phot_fid_united(fbeam_en, V3_rot_pi[i],q_pi[i]);
-     }
-      //All pions are detected
-      if(status_prot && status_pi[0] && status_pi[1] && status_pi[2]) N_all++;
-      //Case that there are 3 pions that are pipl
-      if(targetCharge == 1 && PiPlusCounter == 3)
-      {
-        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] && !status_pi[piplIndexCounter[2]]) N_1p1pi[0]++;
-        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[piplIndexCounter[2]]) N_1p1pi[1]++;
-        if(status_prot  && !status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[piplIndexCounter[2]]) N_1p1pi[2]++;
-        if(status_prot  &&  status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[piplIndexCounter[2]]) N_1p2pi[0]++;
-        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[piplIndexCounter[2]]) N_1p2pi[1]++;
-        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] &&  status_pi[piplIndexCounter[2]]) N_1p2pi[2]++;
-      }
-      else if(targetCharge == 1 && PiPlusCounter == 1 && PiMinusCounter == 2)
-      {
-        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[pimiIndexCounter[0]] && !status_pi[pimiIndexCounter[1]]) N_1p1pi_diff[piplIndexCounter[0]]++;
-        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[pimiIndexCounter[0]] && !status_pi[pimiIndexCounter[1]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
-        if(status_prot  && !status_pi[piplIndexCounter[0]]  && !status_pi[pimiIndexCounter[0]] &&  status_pi[pimiIndexCounter[1]]) N_1p1pi_diff[pimiIndexCounter[1]]++;
-        if(status_prot  &&  status_pi[piplIndexCounter[0]]  &&  status_pi[pimiIndexCounter[0]] && !status_pi[pimiIndexCounter[1]]) N_1p2pi_diff["+-"]++;
-        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[pimiIndexCounter[0]] &&  status_pi[pimiIndexCounter[1]]) N_1p2pi_diff["+-"]++;
-        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[pimiIndexCounter[0]] &&  status_pi[pimiIndexCounter[1]]) N_1p2pi_diff["--"]++;
-      }
-      else if(targetCharge == 1 && PiPlusCounter == 2 && PiMinusCounter == 1)
-      {
-        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] && !status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[0]]++;
-        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[1]]++;
-        if(status_prot  && !status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
-        if(status_prot  &&  status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] && !status_pi[pimiIndexCounter[0]]) N_1p2pi_diff["++"]++;
-        if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] &&  status_pi[pimiIndexCounter[0]]) N_1p2pi_diff["+-"]++;
-        if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] &&  status_pi[pimiIndexCounter[0]]) N_1p2pi_diff["+-"]++;
-      }
-      else if(targetCharge == -1 && PiMinusCounter == 3)
-      {
-        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] && !status_pi[pimiIndexCounter[2]]) N_1p1pi[0]++;
-        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[pimiIndexCounter[2]]) N_1p1pi[1]++;
-        if(status_prot  && !status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[pimiIndexCounter[2]]) N_1p1pi[2]++;
-        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[pimiIndexCounter[2]]) N_1p2pi[0]++;
-        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[pimiIndexCounter[2]]) N_1p2pi[1]++;
-        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] &&  status_pi[pimiIndexCounter[2]]) N_1p2pi[2]++;
-      }
-      else if(targetCharge == -1 && PiPlusCounter == 2 && PiMinusCounter == 1)
-      {
-        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[piplIndexCounter[0]] && !status_pi[piplIndexCounter[1]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
-        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[piplIndexCounter[0]] && !status_pi[piplIndexCounter[1]]) N_1p1pi_diff[piplIndexCounter[0]]++;
-        if(status_prot  && !status_pi[pimiIndexCounter[0]]  && !status_pi[piplIndexCounter[0]] &&  status_pi[piplIndexCounter[1]]) N_1p1pi_diff[piplIndexCounter[1]]++;
-        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  &&  status_pi[piplIndexCounter[0]] && !status_pi[piplIndexCounter[1]]) N_1p2pi_diff["-+"]++;
-        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[piplIndexCounter[0]] &&  status_pi[piplIndexCounter[1]]) N_1p2pi_diff["-+"]++;
-        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[piplIndexCounter[0]] &&  status_pi[piplIndexCounter[1]]) N_1p2pi_diff["++"]++;
-      }
-      else if(targetCharge == 1 && PiPlusCounter == 1 && PiMinusCounter == 2)
-      {
-        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] && !status_pi[piplIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[0]]++;
-        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[piplIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[1]]++;
-        if(status_prot  && !status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[piplIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[0]]++;
-        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] && !status_pi[piplIndexCounter[0]]) N_1p2pi_diff["--"]++;
-        if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] &&  status_pi[piplIndexCounter[0]]) N_1p2pi_diff["-+"]++;
-        if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] &&  status_pi[piplIndexCounter[0]]) N_1p2pi_diff["-+"]++;
-      }
-      else if(targetCharge == 0) // Prevents seg fault errors
-      {
-        if(status_prot  &&  status_pi[0]  && !status_pi[1] && !status_pi[2]) N_1p1pi[0]++;
-        if(status_prot  && !status_pi[0]  &&  status_pi[1] && !status_pi[2]) N_1p1pi[1]++;
-        if(status_prot  && !status_pi[0]  && !status_pi[1] &&  status_pi[2]) N_1p1pi[2]++;
-        if(status_prot  &&  status_pi[0]  &&  status_pi[1] && !status_pi[2]) N_1p2pi[0]++;
-        if(status_prot  &&  status_pi[0]  && !status_pi[1] &&  status_pi[2]) N_1p2pi[1]++;
-        if(status_prot  && !status_pi[0]  &&  status_pi[1] &&  status_pi[2]) N_1p2pi[2]++;
-      }
-
-    }
+  if(N_all != 0)
+  {
     //Check contribution
     if(targetCharge == 1)
     {
@@ -293,12 +295,107 @@ void Subtraction::prot1_pi3_rot_func(TVector3  V3prot, TVector3 V3pi[3], TLorent
           }
         }     
       }
-      else if(PiPlusCounter == 2 && PiMinusCounter == 1)
+      else
       {
-        //Implement diff counts
-      }
-    }
+        int count = 0;
+        TVector3 V3pi2[2];
+        TLorentzVector V4pi2[2];
+        int q_pi2[2] = {0};
+        double P_1p1pi[2] = {0};
+        double Ecal2[2] = {0};
+        double p_miss_perp2[2] = {0};
 
+        std::string strArray[4] = {"++", "+-", "-+", "--"};
+        if(N_all != 0)
+        {
+          for(int i = 0; i < N_pi; i++)
+          {
+            for(int j = 0; j < N_pi; j++)
+            {
+              P_1p1pi[0] = P_1p1pi[1] = 0;
+              V3pi2[0] = V3pi[i];
+              V3pi2[1] = V3pi[j];
+              V4pi2[0] = V4pi[i];
+              V4pi2[1] = V4pi[j];
+              q_pi2[0] = q_pi[i];
+              q_pi2[1] = q_pi[j];
+              prot1_pi2_rot_func(V3prot, V3pi2, V4prot, V4pi2, q_pi2, V4_el, Ecal2, p_miss_perp2, P_1p1pi, targetCharge);
+              Ecal[i] = Ecal2[0];
+              Ecal[j] = Ecal2[1];
+              p_miss_perp[i] = p_miss_perp2[0];
+              p_miss_perp[j] = p_miss_perp2[1];
+              P_1p3pito1p1pi[i] += -P_1p1pi[0]*N_1p2pi_diff[strArray[count]]/N_all;
+              P_1p3pito1p1pi[j] += -P_1p1pi[1]*N_1p2pi_diff[strArray[count]]/N_all;
+              count = count+1;
+            }
+          }
+        }
+      }
+
+    }
+    else if(targetCharge == -1)
+    {
+      if(PiMinusCounter == 3)
+      {
+        //Loop over three pions
+        for (int i = 0; i < N_pi; i++)
+        {
+          if(N_all != 0)
+          {
+            P_1p3pito1p1pi[i] = -(N_1p1pi[i]/N_all);
+          }
+          else 
+          {
+            P_1p3pito1p1pi[i] = 0.0;
+          }
+        }     
+      }
+      else
+      {
+        int count = 0;
+        TVector3 V3pi2[2];
+        TLorentzVector V4pi2[2];
+        int q_pi2[2] = {0};
+        double P_1p1pi[2] = {0};
+        double Ecal2[2] = {0};
+        double p_miss_perp2[2] = {0};
+
+        std::string strArray[4] = {"++", "+-", "-+", "--"};
+        if(N_all != 0)
+        {
+          for(int i = 0; i < N_pi; i++)
+          {
+            for(int j = 0; j < N_pi; j++)
+            {
+              P_1p1pi[0] = P_1p1pi[1] = 0;
+              V3pi2[0] = V3pi[i];
+              V3pi2[1] = V3pi[j];
+              V4pi2[0] = V4pi[i];
+              V4pi2[1] = V4pi[j];
+              q_pi2[0] = q_pi[i];
+              q_pi2[1] = q_pi[j];
+              prot1_pi2_rot_func(V3prot, V3pi2, V4prot, V4pi2, q_pi2, V4_el, Ecal2, p_miss_perp2, P_1p1pi, targetCharge);
+              Ecal[i] = Ecal2[0];
+              Ecal[j] = Ecal2[1];
+              p_miss_perp[i] = p_miss_perp2[0];
+              p_miss_perp[j] = p_miss_perp2[1];
+              P_1p3pito1p1pi[i] += -P_1p1pi[0]*N_1p2pi_diff[strArray[count]]/N_all;
+              P_1p3pito1p1pi[j] += -P_1p1pi[1]*N_1p2pi_diff[strArray[count]]/N_all;
+              count = count+1;
+            }
+          }
+        }
+      }
+
+    }
+    //Double-check that this is in-line with charge dist. 
+    P_tot[0] = P_1p3pito1p1pi[0] + P_1p3pito1p1pi[0] + P_1p3pito1p1pi[1];
+    P_tot[1] = P_1p3pito1p1pi[1] + P_1p3pito1p1pi[0] + P_1p3pito1p1pi[2];
+    P_tot[2] = P_1p3pito1p1pi[2] + P_1p3pito1p1pi[1] + P_1p3pito1p1pi[2];
+  }
+
+  else if(targetCharge == 0)
+  {
     for(int i=0; i< N_pi; i++)
     {
       if(N_all!=0)
@@ -311,7 +408,6 @@ void Subtraction::prot1_pi3_rot_func(TVector3  V3prot, TVector3 V3pi[3], TLorent
       }
     }
     //--------------1p2pi->1p1pi------
-    double P_1p2pito1p1pi[6] = {0};
     int count = 0;
     TVector3 V3pi2[2];
     TLorentzVector V4pi2[2];
@@ -322,34 +418,35 @@ void Subtraction::prot1_pi3_rot_func(TVector3  V3prot, TVector3 V3pi[3], TLorent
     if(N_all!=0)
     {
       for(int i=0; i<3; i++)
+      {
+        for(int j=0; j<3; j++)
         {
-          for(int j=0; j<3; j++)
+          if(i<j)
           {
-            if(i<j)
-            {
-              P_1p1pi[0] = P_1p1pi[1] = 0;
-              V3pi2[0] = V3pi[i];
-              V3pi2[1] = V3pi[j];
-              V4pi2[0] = V4pi[i];
-              V4pi2[1] = V4pi[j];
-              q_pi2[0] = q_pi[i];
-              q_pi2[1] = q_pi[j];
-              prot1_pi2_rot_func(V3prot, V3pi2, V4prot, V4pi2, q_pi2, V4_el, Ecal2, p_miss_perp2, P_1p1pi, 0);
-              Ecal[i] = Ecal2[0];
-              Ecal[j] = Ecal2[1];
-              p_miss_perp[i] = p_miss_perp2[0];
-              p_miss_perp[j] = p_miss_perp2[1];
-              P_1p3pito1p1pi[i] += -P_1p1pi[0]*N_1p2pi[count]/N_all;
-              P_1p3pito1p1pi[j] += -P_1p1pi[1]*N_1p2pi[count]/N_all;
-              count = count+1;
-            }
+            P_1p1pi[0] = P_1p1pi[1] = 0;
+            V3pi2[0] = V3pi[i];
+            V3pi2[1] = V3pi[j];
+            V4pi2[0] = V4pi[i];
+            V4pi2[1] = V4pi[j];
+            q_pi2[0] = q_pi[i];
+            q_pi2[1] = q_pi[j];
+            prot1_pi2_rot_func(V3prot, V3pi2, V4prot, V4pi2, q_pi2, V4_el, Ecal2, p_miss_perp2, P_1p1pi, 0);
+            Ecal[i] = Ecal2[0];
+            Ecal[j] = Ecal2[1];
+            p_miss_perp[i] = p_miss_perp2[0];
+            p_miss_perp[j] = p_miss_perp2[1];
+            P_1p3pito1p1pi[i] += -P_1p1pi[0]*N_1p2pi[count]/N_all;
+            P_1p3pito1p1pi[j] += -P_1p1pi[1]*N_1p2pi[count]/N_all;
+            count = count+1;
           }
         }
-        //Ask about this
-        P_tot[0] = P_1p3pito1p1pi[0] + P_1p3pito1p1pi[0] + P_1p3pito1p1pi[1];
-        P_tot[1] = P_1p3pito1p1pi[1] + P_1p3pito1p1pi[0] + P_1p3pito1p1pi[2];
-        P_tot[2] = P_1p3pito1p1pi[2] + P_1p3pito1p1pi[1] + P_1p3pito1p1pi[2];
       }
+      //Ask about this
+      P_tot[0] = P_1p3pito1p1pi[0] + P_1p3pito1p1pi[0] + P_1p3pito1p1pi[1];
+      P_tot[1] = P_1p3pito1p1pi[1] + P_1p3pito1p1pi[0] + P_1p3pito1p1pi[2];
+      P_tot[2] = P_1p3pito1p1pi[2] + P_1p3pito1p1pi[1] + P_1p3pito1p1pi[2];
+    }
+  }
 }
 
 
