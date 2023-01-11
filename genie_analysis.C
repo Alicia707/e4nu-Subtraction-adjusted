@@ -1325,6 +1325,8 @@ void genie_analysis::Loop(Int_t choice) {
 		bool detTruthFlag = false; 
 
 		//Events with exactly 2 protons
+		/*
+		/* The following code is commented out to speed up testing 
 		if(num_p_det == 2)
 		{
 			//Implement unsmeared
@@ -1468,7 +1470,7 @@ void genie_analysis::Loop(Int_t choice) {
 					 	C2p1piPIPL++;
 						if(detTruthFlag)
 						{
-							h1_test_E_cal_2p1pi_pipl->Fill(P_2p1pito1p1pi[z], histoweight);
+							h1_test_E_cal_2p1pi_pipl->Fill(E_tot_2p[z], P_2p1pito1p1pi[z]*histoweight);
 						}
 						//11.3.21 EDIT: Added histogram fill for total events with at LEAST 1p1pi
 						h1_E_cal_1p1pi_pipl_tot->Fill(E_tot_2p[z], histoweight);
@@ -2069,15 +2071,16 @@ void genie_analysis::Loop(Int_t choice) {
 					} //Filling the histogram for two pions
 				}//end loop over 2 protons
 			} //2pi requirement
-		}//2prot requirement
+		}//2prot requirement */
 
 		// -------------------------------------------------------------------------------------------------------------------------------------
 
 		//Events with exactly 3 protons
 
+		/*
+		/* The following code is commented out to speed up testing 
 		if(num_p_det == 3)
 		{
-
 			const int N_3p = 3;
 			TLorentzVector V4_p_uncorr[N_3p], V4_p_corr[N_3p],V4_prot_el[N_3p];
 			TVector3 V3_prot_uncorr[N_3p],V3_prot_corr[N_3p],V3_3p_rot[N_3p];
@@ -2146,7 +2149,7 @@ void genie_analysis::Loop(Int_t choice) {
 
 			if (num_pi_det == 1)
 			{
-			  C3p1piALL++;
+			  	C3p1piALL++;
 				double P_tot_3p[N_3p]={0};
 				double Ecal_3p1pi[N_3p]={0};
 				double p_miss_perp_3p1pi[N_3p]={0};
@@ -2198,17 +2201,21 @@ void genie_analysis::Loop(Int_t choice) {
 				//for CLAS data is histoweight = 1/Mott_cross_sec
 				//double histoweight = pion_acc_ratio * weight_protons * e_acc_ratio * wght/Mott_cross_sec;
 				//Weight for 3protons, 1 pion, 1 electron, GENIE weight and Mott cross section
-
+				detTruthFlag = (((num_p_det == 3) && (num_p_true == 3)) && ((num_pi_det == 1) && (num_pi_true == 1)));
 				for(int j = 0; j < N_3p; j++) { //loop over 3 protons
-					if(charge_pi[0]>0)
+					if(charge_pi[0] == 1)
 					{
+						if(detTruthFlag)
+						{
+							h1_test_E_cal_3p1pi_pipl->Fill(E_cal[j], P_tot_3p[j]*histoweight);
+						}
 						//11.3.21 EDIT: Added 1p1pi_tot h1 fill
 						h1_E_cal_1p1pi_pipl_tot->Fill(E_cal[j],histoweight);
 					    C3p1piPIPL++;
 						h1_E_tot_3p1pi_pipl->Fill(E_cal[j], P_tot_3p[j]*histoweight);
-					//	h1_E_tot_3p1pi_pipl_1step->Fill(E_cal[j], P_tot_3p_1step[j]*histoweight);
-					//	h1_E_tot_3p1pi_pipl_2step->Fill(E_cal[j], P_tot_3p_2step[j]*histoweight);
-					//	h1_E_tot_3p1pi_pipl_const_bin->Fill(E_cal[j], P_tot_3p[j]*histoweight);
+						//	h1_E_tot_3p1pi_pipl_1step->Fill(E_cal[j], P_tot_3p_1step[j]*histoweight);
+						//	h1_E_tot_3p1pi_pipl_2step->Fill(E_cal[j], P_tot_3p_2step[j]*histoweight);
+						//	h1_E_tot_3p1pi_pipl_const_bin->Fill(E_cal[j], P_tot_3p[j]*histoweight);
 						h1_E_rec_3p1pi_pipl->Fill(E_rec,P_tot_3p[j]*histoweight);
 						h2_Erec_pperp_3p1pi_pipl->Fill(p_miss_perp[j],E_rec,P_tot_3p[j]*histoweight);
 						h2_Etot_pperp_pipl->Fill(p_miss_perp[j],E_cal[j],P_tot_3p[j]*histoweight);
@@ -2277,13 +2284,17 @@ void genie_analysis::Loop(Int_t choice) {
 						}
 
 					}//11.3.21 Minor bug fix: Added pimi charge fix charge_pi<0 conditional
-					else if(charge_pi[0]<0)
+					else if(charge_pi[0] == -1)
 					{
-					  C3p1piPIMI++;
+					  	C3p1piPIMI++;
+						if(detTruthFlag)
+						{
+							h1_test_E_cal_3p1pi_pimi->Fill(E_cal[j], P_tot_3p[j]*histoweight);
+						}
 						h1_E_cal_1p1pi_pimi_tot->Fill(E_cal[j], histoweight);
 						h1_E_tot_3p1pi_pimi->Fill(E_cal[j], P_tot_3p[j]*histoweight);
-				//		h1_E_tot_3p1pi_pimi_1step->Fill(E_cal[j], P_tot_3p_1step[j]*histoweight);
-				//		h1_E_tot_3p1pi_pimi_2step->Fill(E_cal[j], P_tot_3p_2step[j]*histoweight);
+						//		h1_E_tot_3p1pi_pimi_1step->Fill(E_cal[j], P_tot_3p_1step[j]*histoweight);
+						//		h1_E_tot_3p1pi_pimi_2step->Fill(E_cal[j], P_tot_3p_2step[j]*histoweight);
 						//h1_E_tot_3p1pi_pimi_const_bin->Fill(E_cal[j], P_tot_3p[j]*histoweight);
 						h1_E_rec_3p1pi_pimi->Fill(E_rec,P_tot_3p[j]*histoweight);
 						h2_Erec_pperp_3p1pi_pimi->Fill(p_miss_perp[j],E_rec,P_tot_3p[j]*histoweight);
@@ -2358,7 +2369,7 @@ void genie_analysis::Loop(Int_t choice) {
 
 			} // 1 pi requirement ends
 
-		} //end if num_p_det == 3  3proton requirement
+		} //end if num_p_det == 3  3proton requirement */
 
 		//Events with exactly one proton
 
@@ -2401,8 +2412,8 @@ void genie_analysis::Loop(Int_t choice) {
 			}
 
 			//---------------------------------- 1p 1pi   ----------------------------------------------
-
-			if(num_pi_det == 1)
+			//The following code is commented out to speed up execution for testing 
+			/*if(num_pi_det == 1)
 			{
 			  C1p1piALL++;
 
@@ -2455,7 +2466,7 @@ void genie_analysis::Loop(Int_t choice) {
 				//double histoweight = pion_acc_ratio * p_acc_ratio * e_acc_ratio * wght/Mott_cross_sec;
 				//1proton, 1 Pion, 1 electron acceptance, GENIE weight and Mott
 
-				if(charge_pi[0]>0)
+				if(charge_pi[0] == 1)
 				{
 				  C1p1piPIPL++;
 					// 11.3.21 EDIT: Added histogram filling for 1p1pi_pipl ONLY and tot events
@@ -2472,7 +2483,7 @@ void genie_analysis::Loop(Int_t choice) {
 					h1_E_rec_cutpi1_pipl->Fill(E_rec,histoweight);
 					h1_E_tot_cutpi1_pipl->Fill(Ecal,histoweight);
 			}//11.3.21 Minor Bug fix: added conditional for charge < 0
-				else if(charge_pi[0]<0)
+				else if(charge_pi[0] == -1)
 				{
 				  C1p1piPIMI++;
 					// 11.3.21 EDIT: Added histogram filling for 1p1pi ONLY  and tot events
@@ -2490,7 +2501,7 @@ void genie_analysis::Loop(Int_t choice) {
 					h1_E_rec_cutpi1_pimi->Fill(E_rec,histoweight);
 					h1_E_tot_cutpi1_pimi->Fill(Ecal,histoweight);
 				}
-			 }//end of 1p 1pi requirement
+			 }//end of 1p 1pi requirement*/
 
 			//---------------------------------- 1p 2pi   ----------------------------------------------
 
@@ -2508,7 +2519,6 @@ void genie_analysis::Loop(Int_t choice) {
 
 				for (int i = 0; i < num_pi_det; i++)
 				{
-
 					if (choice == 0) { //CLAS data
 						V3_2pi_corr[i].SetXYZ( pxf[ind_pi_phot[i]], pyf[ind_pi_phot[i]], pzf[ind_pi_phot[i]]);
 						V4_2pi_corr[i].SetPxPyPzE(pxf[ind_pi_phot[i]], pyf[ind_pi_phot[i]], pzf[ind_pi_phot[i]], TMath::Sqrt(m_pion*m_pion+pf[ind_pi_phot[i]]*pf[ind_pi_phot[i]]));
@@ -2570,15 +2580,21 @@ void genie_analysis::Loop(Int_t choice) {
 				}
 				//---------------------------------- 1p 2pi->1p1pi   ----------------------------------------------
 
+				detTruthFlag = (((num_pi_true == 2) && (num_p_true == 1)) && ((num_pi_det == 2) && (num_p_det == 1)));
+
 				for(int z = 0; z < N_2pi; z++)
 				{  //to consider 2 diff. 1pi states
-					if(charge_pi[z]>0)
+					if(charge_pi[z] == 1)
 					{
-					  C1p2piPIPL++;
+						C1p2piPIPL++;
+						if(detTruthFlag)
+						{
+							h1_test_E_cal_1p2pi_pipl->Fill(Ecal[z], P_1p1pi_pipl[z]*histoweight);
+						}
 						//11.3.21 EDIT: Added 1p1pi tot h1
 						h1_E_cal_1p1pi_pipl_tot->Fill(Ecal[z],histoweight);
 
-					//	h1_E_tot_1p2pi_pipl->Fill(Ecal[z],P_1p1pi[z]*histoweight);
+						//	h1_E_tot_1p2pi_pipl->Fill(Ecal[z],P_1p1pi[z]*histoweight);
 						h1_E_rec_1p2pi_pipl->Fill(E_rec,P_1p1pi[z]*histoweight);
 						h2_Erec_pperp_1p2pi_1p1pi_pipl->Fill(p_miss_perp[z],E_rec,P_1p1pi[z]*histoweight);
 						h2_Etot_pperp_pipl->Fill(p_miss_perp[z],Ecal[z],P_1p1pi[z]*histoweight);
@@ -2647,14 +2663,18 @@ void genie_analysis::Loop(Int_t choice) {
 						}
 
 					}
-					else if(charge_pi[z]<0)
+					else if(charge_pi[z] == -1)
 					{
-					  C1p2piPIMI++;
+					  	C1p2piPIMI++;
+						if(detTruthFlag)
+						{
+							h1_test_E_cal_1p2pi_pimi->Fill(Ecal[z], P_1p1pi_pimi[z]*histoweight);
+						}
 						//11.3.21 EDIT: Added 1p1pi tot h1
 						h1_E_cal_1p1pi_pimi_tot->Fill(Ecal[z], histoweight);
 
 						//h1_E_tot_1p2pi_pimi->Fill(Ecal[z],P_1p1pi[z]*histoweight);
-					//	h1_E_tot_1p2pi_pimi_const_bin->Fill(Ecal[z],P_1p1pi[z]*histoweight);
+						//	h1_E_tot_1p2pi_pimi_const_bin->Fill(Ecal[z],P_1p1pi[z]*histoweight);
 						h1_E_rec_1p2pi_pimi->Fill(E_rec,P_1p1pi[z]*histoweight);
 						h2_Erec_pperp_1p2pi_1p1pi_pimi->Fill(p_miss_perp[z],E_rec,P_1p1pi[z]*histoweight);
 						h2_Etot_pperp_pimi->Fill(p_miss_perp[z],Ecal[z],P_1p1pi[z]*histoweight);
@@ -2722,8 +2742,7 @@ void genie_analysis::Loop(Int_t choice) {
 							}
 						}
 
-					}
-
+					} //end if 
 				} //end loop over N_2pi
 
 			}//1p 2pi statetment ends
@@ -2793,24 +2812,19 @@ void genie_analysis::Loop(Int_t choice) {
 				double P_1p3pi_pipl[3] = {0};
 				rotation->prot1_pi3_rot_func(V3_prot_uncorr, V3_3pi_corr, V4_prot_corr, V4_3pi_corr, charge_pi, V4_el, Ecal1p3pi_pimi, p_perp1p3pi_pimi, P_1p3pi_pimi, -1);
 				rotation->prot1_pi3_rot_func(V3_prot_uncorr, V3_3pi_corr, V4_prot_corr, V4_3pi_corr, charge_pi, V4_el, Ecal1p3pi_pipl, p_perp1p3pi_pipl, P_1p3pi_pipl, 1);
-				for(int z = 0; z < N_3pi; z++)
+
+				//---------------------------------- 1p 3pi->1p 0pi  total ?? F.H. 08/13/19 check logic here compared to 1p 2pi case ----------------------------
+				detTruthFlag = (((num_pi_true == 3) && (num_p_true == 1)) && ((num_pi_det == 3) && (num_p_det == 1)));
+
+				for(int z=0;z<3;z++)
 				{
 					if(charge_pi[z] == 1)
 					{
-						h1_E_tot_1p3pi_pipl_test->Fill(Ecal1p3pi_pipl[z], P_1p3pi_pipl[z]*histoweight);
-					}
-					else if(charge_pi[z] == -1)
-					{
-						h1_E_tot_1p3pi_pimi_test->Fill(Ecal1p3pi_pimi[z], P_1p3pi_pimi[z]*histoweight);
-					}
-				}
-
-				//---------------------------------- 1p 3pi->1p 0pi  total ?? F.H. 08/13/19 check logic here compared to 1p 2pi case ----------------------------
-				for(int z=0;z<3;z++)
-				{
-					if(charge_pi[z]>0)
-					{
 						C1p3piPIPL++;
+						if(detTruthFlag)
+						{
+							h1_test_E_cal_1p3pi_pipl->Fill(Ecal1p3pi_pipl[z], P_1p3pi_pipl[z]*histoweight);
+						}
 						//11.3.21 EDIT: Added 1p1pi tot h1
 						h1_E_cal_1p1pi_pipl_tot->Fill(Ecal1p3pi[z], histoweight);
 						h1_E_tot_1p3pi_pipl->Fill(Ecal1p3pi[z],P_1p3pi[z]*histoweight);
@@ -2880,9 +2894,13 @@ void genie_analysis::Loop(Int_t choice) {
 							}
 						}
 					}//11.3.21 Minor Bug fix: did the charge stuff :)
-				else if(charge_pi[z] < 0)
+				else if(charge_pi[z] == -1)
 				{
-				  C1p3piPIMI++;
+				  	C1p3piPIMI++;
+					if(detTruthFlag)
+					{
+						//to-do implement this
+					}
 					//11.3.21 EDIT: Added 1p1pi tot h1
 					h1_E_cal_1p1pi_pipl_tot->Fill(Ecal1p3pi[z], histoweight);
 
