@@ -1,5 +1,7 @@
 # Ignore any data files - they are too large to commit 
 *.root
+# Ignore Object files - they are not necessary to commit
+*.o
 # Ignore images
 *.png
 *.svg
