@@ -19,7 +19,7 @@
 #include <sstream>
 #include <iostream>
 
-//#include "Constants.h"
+#include "Constants.h"
 
 using namespace std; 
 
@@ -47,8 +47,8 @@ void event_selector::Loop() {
      * @brief Data file setup and headers
      */
     std::ofstream dataFile; 
-    dataFile.open("data1p0pi.csv");
-    dataFile << "E0, Erec, Ee', pex, pey, pez, Ep, ppx, ppy, ppz \n"; 
+    dataFile.open("data1p2pi.csv");
+    dataFile << "Event Type, Detected Particle charge, Same/Diff Charges (true), E0, Erec, Ee', pex, pey, pez, Ep, ppx, ppy, ppz \n"; 
 
     Long64_t nentries = fChain->GetEntries();
     std::cout << "Number of Entries: " << nentries << std::endl;
@@ -84,8 +84,12 @@ void event_selector::Loop() {
 
         int true_ProtonCounter = 0; 
         int true_PionCounter = 0;
+        int true_PiplCounter = 0;
+        int true_PimiCounter = 0;
         int det_ProtonCounter = 0; 
         int det_PionCounter = 0;
+        int det_PiplCounter = 0; 
+        int det_PimiCounter = 0; 
 
         vector<int> IndexProton; 
         vector<int> IndexPion;
@@ -109,29 +113,43 @@ void event_selector::Loop() {
             {
                 //Pi minus subtraction 
                 true_PionCounter++;
+                true_PimiCounter++;
                 TVector3 V3_pion(pxf[i],pyf[i], pzf[i]);
                 if((V3_pion.Theta() *TMath::RadToDeg()) < 15) {continue;}
                 if(V3_pion.Mag() < 0.15) {continue;}
                 det_PionCounter++;
+                det_PimiCounter++;
                 IndexPion.push_back(i);
             }
             if(pdgf[i] == 211 && pf[i] > 0.15)
             {
                 //Pi plus detection
                 true_PionCounter++;
+                true_PiplCounter++;
                 TVector3 V3_pion(pxf[i], pyf[i], pzf[i]);
                 if((V3_pion.Theta() * TMath::RadToDeg()) < 15.0) {continue;}
                 if(V3_pion.Mag() < 0.15) {continue;}
                 det_PionCounter++;
+                det_PiplCounter++;
                 IndexPion.push_back(i);
             }
 
         }
 
-        if(det_PionCounter == 0 && true_PionCounter == 0 && det_ProtonCounter == 1 && true_ProtonCounter == 1)
+        if(true_ProtonCounter == 1 && true_PionCounter == 2 && det_ProtonCounter == 1 && det_PionCounter == 1)
         {
             double E_cal = Ef[IndexProton[0]] + El - m_prot;
-            dataFile << Ev << "," <<  E_cal << "," << El << "," << pxl << "," << pyl << "," << pzl << "," << Ef[IndexProton[0]] << "," << pxf[IndexProton[0]] << "," << pyf[IndexProton[0]] << "," << pzf[IndexProton[0]] << "\n";
+            int charge = 0; 
+            string chargeType = "";
+            if(det_PiplCounter == 1)
+                charge = 1; 
+            else if(det_PimiCounter == 1)
+                charge = -1;
+            if(true_PimiCounter == true_PiplCounter == 1)
+                chargeType = "Different Charges";
+            else if((true_PimiCounter == 2 && true_PiplCounter == 0) || (true_PiplCounter == 2 && true_PimiCounter == 0))
+                chargeType = "Same Charges";
+            dataFile << true_ProtonCounter << "p" << true_PiplCounter << "pipl" << true_PimiCounter << "pimi," << charge << "," << chargeType << "," << Ev << "," <<  E_cal << "," << El << "," << pxl << "," << pyl << "," << pzl << "," << Ef[IndexProton[0]] << "," << pxf[IndexProton[0]] << "," << pyf[IndexProton[0]] << "," << pzf[IndexProton[0]] << "\n";
         }
 
 

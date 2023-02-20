@@ -31,6 +31,7 @@ struct Subtraction {
   }
 
   void  prot1_pi2_rot_func(TVector3  V3prot, TVector3 V3pi[2], TLorentzVector V4prot, TLorentzVector V4pi[2], int q_pi[2], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_1p1pi[], int targetCharge);
+  void  prot1_pi2_rot_funcNew(TVector3  V3prot, TVector3 V3pi[2], TLorentzVector V4prot, TLorentzVector V4pi[2], int q_pi[2], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_1p1pi[], int targetCharge);
   void  prot1_pi3_rot_func(TVector3  V3prot, TVector3 V3pi[3], TLorentzVector V4prot, TLorentzVector V4pi[3], int q_pi[3], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_tot[3], int targetCharge);
   void  prot2_pi1_rot_func(TLorentzVector V4_2prot_uncorr[2], TLorentzVector V4_el, TLorentzVector V4_1pi, TVector3 V3q, int q_pi, double Ecal[2], double p_miss_perp[2], double P_tot[2]);
   //void  prot2_pi2_rot_func(TVector3 V3_2prot_corr[2],TVector3 V3_2prot_uncorr[2],TVector3 V3_2pi[2], TLorentzVector V4_2prot_corr[2], TLorentzVector V4_2pi[2], int q_pi[2], TLorentzVector V4_el, double Ecal[2][2], double p_miss_perp[2][2], double P_tot_2p[2][2], int Selection);

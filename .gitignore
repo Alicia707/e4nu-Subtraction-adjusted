@@ -2,6 +2,10 @@
 *.root
 # Ignore Object files - they are not necessary to commit
 *.o
+# Ignore the vscode dir 
+.vscode/
+#Ignore the Sidequests file 
+*Side*.txt
 # Ignore images
 *.png
 *.svg
