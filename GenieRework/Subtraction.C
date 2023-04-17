@@ -14,8 +14,149 @@
 #include <vector>
 #include "Subtraction.h"
 
-void Subtraction::prot1_pi2_rot_funcNew(TVector3  V3prot, TVector3 V3pi[2], TLorentzVector V4prot, TLorentzVector V4pi[2], int q_pi[2], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_1p1pi[], int targetCharge)
+void Subtraction::prot1_pi2_rot_funcNew(TVector3  V3prot, TVector3 V3pi[2], TLorentzVector V4prot, TLorentzVector V4pi[2], int q_pi[2], TLorentzVector V4_el, double Ecal[4], double p_miss_perp[3], double P_1p1pi[], int targetCharge)
 {
+  const int N_pi = 2;
+  double rotation_ang = 0.0;
+  TVector3 V3_rot_pi[2], V3_p_rot;
+  bool status_pi[2] = {true};
+  bool status_prot = true;
+
+  double N_all = 0;
+  double N_1p1pi[2] = {0};
+  double N_1p1pi_diff[2] = {0}; //for when there is 1 pimi and 1 pipl
+
+  std::vector<int> piplIndexCounter;
+  std::vector<int> pimiIndexCounter;
+  int PiPlusCounter = 0;
+  int PiMinusCounter = 0;
+
+  //Particle identification for pions 
+  for(int i = 0; i < N_pi; i++)
+  {
+    if(q_pi[i] == 1)
+    {
+      piplIndexCounter.push_back(i);
+      PiPlusCounter++;
+    }
+    else if(q_pi[i] == -1)
+    {
+      pimiIndexCounter.push_back(i);
+      PiMinusCounter++;
+    }
+  }
+
+  for(int g = 0; g < N_tot; g++) // Get number of charges, set up vectors, etc.
+  {
+    rotation_ang = gRandom->Uniform(0,2*TMath::Pi()); // Rotate randomly about momentum transfer vect
+    V3_p_rot = V3prot;
+    V3_p_rot.Rotate(rotation_ang, V3q);
+
+    status_prot = PFiducialCut(fbeam_en, V3_p_rot);
+
+    for(int i = 0; i < N_pi; i++)// Get number of charges, set up vectors, etc.
+    {
+      V3_rot_pi[i] = V3pi[i];
+      V3_rot_pi[i].Rotate(rotation_ang, V3q);
+      status_pi[i] = Pi_phot_fid_united(fbeam_en, V3_rot_pi[i],q_pi[i]);
+    }
+
+    if(status_prot  && status_pi[0]  && status_pi[1] ) N_all++; //both pion det
+    //Check over this, should not matter trgt charge for first 2 can simplify? 
+    if(targetCharge == 1 && PiPlusCounter == 2 && PiMinusCounter == 0)
+    {
+      if(status_prot  &&  status_pi[piplIndexCounter[0]]  && !status_pi[piplIndexCounter[1]] ) N_1p1pi[0]++; //1st pion det
+      if(status_prot  && !status_pi[piplIndexCounter[0]]  &&  status_pi[piplIndexCounter[1]] ) N_1p1pi[1]++; //2nd pion det
+    }
+    else if(targetCharge == -1 && PiPlusCounter == 0 && PiMinusCounter == 2)
+    {
+      if(status_prot  &&  status_pi[pimiIndexCounter[0]]  && !status_pi[pimiIndexCounter[1]] ) N_1p1pi[0]++; //1st pion det
+      if(status_prot  && !status_pi[pimiIndexCounter[0]]  &&  status_pi[pimiIndexCounter[1]] ) N_1p1pi[1]++; //2nd pion det
+    }
+    else if(PiPlusCounter == 1 && PiMinusCounter == 1)
+    {
+      if(status_prot &&  status_pi[piplIndexCounter[0]] && !status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[piplIndexCounter[0]]++; //the pipl is det
+      if(status_prot && !status_pi[piplIndexCounter[0]] &&  status_pi[pimiIndexCounter[0]]) N_1p1pi_diff[pimiIndexCounter[0]]++; //the pimi is det
+    }
+    else if(targetCharge == 0) //Previous logic to avoid seg fault errors 6.29.22 -> Previous logic did not account for detection of diff pion charges
+    {
+      if(status_prot  &&  status_pi[0]  && !status_pi[1] ) N_1p1pi[0]++;
+      if(status_prot  && !status_pi[0]  &&  status_pi[1] ) N_1p1pi[1]++;
+    }
+  }
+  //Check if this is to contribute to pipl or pimi histos
+  if(targetCharge == 1) // contribute to pipl
+  {
+    if(PiPlusCounter == 2 && PiMinusCounter == 0)
+    {
+      for(int h = 0; h < N_pi; h++) //Go over two pions that are the same (both pipl)
+      {
+        prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
+        if(N_all!=0)
+        {
+          P_1p1pi[h] = -(N_1p1pi[h]/N_all);
+        }
+        else
+          P_1p1pi[h] = 0; //N_all!=0 statement
+      }
+    }
+    else if(PiPlusCounter == 1 && PiMinusCounter == 1)
+    {
+      for (int h = 2; h < 4; h++) {
+      prot1_pi1_en_calc(V4prot, V4pi[h-2], q_pi[h-2], V4_el, &Ecal[h], &p_miss_perp[2]);
+      if(N_all != 0)
+      {
+        P_1p1pi[h] = -(N_1p1pi_diff[h-2]/N_all);
+      }
+      else
+        P_1p1pi[h] = 0;
+      }
+    }
+  }
+
+  else if(targetCharge == -1)
+  {
+    if(PiPlusCounter == 0 && PiMinusCounter == 2)
+    {
+      for(int h = 0; h < N_pi; h++)
+      {
+        prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
+        if(N_all!=0)
+        P_1p1pi[h] = -(N_1p1pi[h]/N_all);
+        else
+        P_1p1pi[h] = 0; //N_all!=0 statement
+      }
+    }
+    else if(PiPlusCounter == 1 && PiMinusCounter == 1)
+    {
+      for(int h = 2; h < 4; h++) {
+        prot1_pi1_en_calc(V4prot, V4pi[h-2], q_pi[h-2], V4_el, &Ecal[h], &p_miss_perp[h]);
+        
+        if(N_all != 0) 
+        {
+          P_1p1pi[h] = -(N_1p1pi_diff[h-2] / N_all);
+        }
+        else
+          P_1p1pi[h] = 0;
+      }
+    }
+  }
+  else if(targetCharge == 0)
+  {
+    //----------------------1p2pi->1p1pi
+    for(int h=0;h<N_pi;h++)
+    {
+      prot1_pi1_en_calc(V4prot, V4pi[h], q_pi[h], V4_el, &Ecal[h], &p_miss_perp[h]);
+      if(N_all!=0)
+      P_1p1pi[h] = -(N_1p1pi[h]/N_all);
+      else
+      P_1p1pi[h]=0; //N_all!=0 statement
+    }
+  }
+  else
+  {
+    std::cout << "This should not happen!" << std::endl;
+  } 
 
 }
 
@@ -158,6 +299,390 @@ void Subtraction::prot1_pi2_rot_func(TVector3  V3prot, TVector3 V3pi[2], TLorent
   }
 }
 
+void Subtraction::prot1_pi3_rot_funx(TVector3  V3prot, TVector3 V3pi[3], TLorentzVector V4prot, TLorentzVector V4pi[3], int q_pi[3], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_tot[3], int targetCharge, double P_tot_1p3pi_1p2pi[12], double Ecal_1p3pi_1p2pi[12], double P_tot_1p3pi_1p1pi[6], double Ecal_1p3pi_1p1pi[6])
+{
+  const int N_pi = 3;
+  double P_1p3pito1p1pi_diff[3] = {0};
+  double P_1p3pito1p1pi_same[3] = {0};
+  double P_tot_2pi_diff[2] = {0};
+  double P_tot_2pi_same[2] = {0};
+  double E_cal_1p3pito1p1pi_diff[3] = {0};
+  double E_cal_1p3pito1p1pi_same[3] = {0};
+  double E_cal_2pi_diff[2] = {0};
+  double E_cal_2pi_same[2] = {0};
+  double rotation_ang;
+  TVector3 V3_rot_pi[N_pi], V3_p_rot;
+  bool status_pi[N_pi]={true};
+  bool status_prot = true;
+  double N_all = 0;
+  double N_1p1pi[3]={0},N_1p2pi[3]={0}, N_1p1pi_diff[3] = {0};
+  double N_1p2pi_diff[2][2] = {0.0};
+  double N_1p2pi_chargeDist[3][4] = {0.0};
+
+   //Imeplmenting charge selection
+  std::vector<int> piplIndexCounter; 
+  std::vector<int> pimiIndexCounter;
+  int PiPlusCounter = 0; 
+  int PiMinusCounter = 0;
+  //Implementing charge selection
+  for(int i = 0; i < N_pi; i++)
+  {
+    if(q_pi[i] == 1)
+    {
+      piplIndexCounter.push_back(i); 
+      PiPlusCounter++;
+    }
+    else if(q_pi[i] == -1)
+    {
+      pimiIndexCounter.push_back(i); 
+      PiMinusCounter++;
+    }
+  }
+
+  for(int g=0; g < N_tot; g++)
+  {
+    rotation_ang=gRandom->Uniform(0,2*TMath::Pi());
+    V3_p_rot = V3prot;
+
+    V3_p_rot.Rotate(rotation_ang,V3q);
+    
+    status_prot = PFiducialCut(fbeam_en, V3_p_rot);
+
+    for(int i=0;i<N_pi;i++)
+    {
+      V3_rot_pi[i]=V3pi[i];
+      V3_rot_pi[i].Rotate(rotation_ang,V3q);
+      status_pi[i]=Pi_phot_fid_united(fbeam_en, V3_rot_pi[i],q_pi[i]);
+    }
+    //All pions are detected
+    if(status_prot && status_pi[0] && status_pi[1] && status_pi[2]) N_all++;
+    //Detect two pions 
+    else if(status_prot && status_pi[0] && status_pi[1] && !status_pi[2]) //Detect first two
+    {
+      N_1p2pi[0]++;
+      if((q_pi[0] & q_pi[1]) == 1){N_1p2pi_chargeDist[0][0]++;}
+      else if(q_pi[0] == 1 && q_pi[1] == -1){N_1p2pi_chargeDist[0][1]++;}
+      else if(q_pi[0] == -1 && q_pi[1] == 1){N_1p2pi_chargeDist[0][2]++;}
+      else if((q_pi[0] & q_pi[1]) == -1){N_1p2pi_chargeDist[0][3]++;}
+      else{std::cout << "Uh-oh Spaghettios - your life is a mess" << std::endl;}
+    }
+    else if(status_prot && status_pi[0] && !status_pi[1] && status_pi[2]) // Detect pi1pi3
+    {
+      N_1p2pi[1]++;
+      if((q_pi[0] & q_pi[2]) == 1){N_1p2pi_chargeDist[1][0]++;}
+      else if(q_pi[0] == 1 && q_pi[2] == -1){N_1p2pi_chargeDist[1][1]++;}
+      else if(q_pi[0] == -1 && q_pi[2] == 1){N_1p2pi_chargeDist[1][2]++;}
+      else if((q_pi[0] & q_pi[2]) == -1){N_1p2pi_chargeDist[1][3]++;}
+      else{std::cout << "Uh-oh Spaghettios - your life is a mess" << std::endl;}
+    }
+    else if(status_prot && !status_pi[0] && status_pi[1] && status_pi[2]) // Detect pi2pi3
+    {
+      N_1p2pi[2]++;
+      if((q_pi[1] & q_pi[2]) == 1){N_1p2pi_chargeDist[2][0]++;}
+      else if(q_pi[1] == 1 && q_pi[2] == -1){N_1p2pi_chargeDist[2][1]++;}
+      else if(q_pi[1] == -1 && q_pi[2] == 1){N_1p2pi_chargeDist[2][2]++;}
+      else if((q_pi[2] & q_pi[2]) == -1){N_1p2pi_chargeDist[2][3]++;}
+      else{std::cout << "Uh-oh Spaghettios - your life is a mess" << std::endl;}
+    }
+    //Detect one pion
+    else if(status_prot && status_pi[0] && !status_pi[1] && !status_pi[2]) // Detect pi1
+    {
+      N_1p1pi[0]++;
+    }
+    else if(status_prot && !status_pi[0] && status_pi[1] && !status_pi[2]) // Detect pi2
+    {
+      N_1p1pi[1]++;
+    }
+    else if(status_prot && !status_pi[0] && !status_pi[1] && status_pi[2]) // Detect pi3
+    {
+      N_1p1pi[2]++;
+    }
+  }
+
+  double P_1p3pito1p1pi[6] = {0.0};
+  double Ecal_1p3pi_to_1p1pi[6] = {0.0};
+  double Ecal1 = 0.5;
+  if(N_all > 0)
+  {
+    //Case 1p3pi -> 1p1pi 
+    int count = 1;
+    for(int i = 0; i < N_pi; i++)
+    {
+      prot1_pi1_en_calc(V4prot, V4pi[i], q_pi[i], V4_el, &Ecal1, p_miss_perp);
+      if(q_pi[i] == targetCharge)
+      {
+        P_1p3pito1p1pi[i] = -(N_1p1pi[i]/N_all);
+        Ecal_1p3pi_to_1p1pi[i] = Ecal1;
+      }
+      else if(q_pi[i] != targetCharge)
+      {
+        P_1p3pito1p1pi[i + 3] = -(N_1p1pi[i]/N_all);
+        Ecal_1p3pi_to_1p1pi[i + 3] = Ecal1;
+      }
+    }
+    for(int i = 0; i < 6; i++)
+    {
+      P_tot_1p3pi_1p1pi[i] = P_1p3pito1p1pi[i];
+      Ecal_1p3pi_1p1pi[i] = Ecal_1p3pi_to_1p1pi[i];
+    }
+
+    
+
+    //Case 1p3pi -> 1p2pi -> 1p1pi 
+    double P_1p3pi_to_1p2pi[12] = {0.0};
+    double Ecal_1p3pi_to_1p2pi[12] = {0.0};
+    //Loop over the three pions for the first det 
+    for(int i = 0; i < 3; i++)
+    {
+      int count = 1;
+      TVector3 V3pi2[2];
+      TLorentzVector V4pi2[2];
+      int q_pi2[2] = {0};
+      double P_1p1pi[4] = {0.0};
+      double Ecal2[4] = {0.0};
+      double p_miss_perp2[3] = {0};
+      int index = 0;
+      //Loop over the three pions for the second det 
+      for(int j = 0; j < 3; j++)
+      {
+        if(i < j)
+        {
+          V3pi2[0] = V3pi[i]; 
+          V3pi2[1] = V3pi[j];
+          V4pi2[0] = V4pi[i]; 
+          V4pi2[1] = V4pi[j];
+          q_pi2[0] = q_pi[i];
+          q_pi2[1] = q_pi[j];
+          prot1_pi2_rot_funcNew(V3prot, V3pi2, V4prot, V4pi2, q_pi2, V4_el, Ecal2, p_miss_perp2, P_1p1pi, targetCharge);
+          index = 0;
+          for(int k = (0 + 4*count); k < 4 + (4*count); k++)
+          {
+            P_1p3pi_to_1p2pi[k] = -P_1p1pi[index] * (N_1p2pi[count] / N_all);
+            Ecal_1p3pi_to_1p2pi[k] = Ecal2[index];
+            index++;
+          }
+          count++;
+        }
+      }
+    }
+    for(int i = 0; i < 12; i++)
+    {
+      P_tot_1p3pi_1p2pi[i] = P_1p3pi_to_1p2pi[i];
+      Ecal_1p3pi_1p2pi[i] = Ecal_1p3pi_to_1p2pi[i];
+    }
+  }
+
+
+}
+
+
+void Subtraction::prot1_pi3_rot_funcNew(TVector3  V3prot, TVector3 V3pi[3], TLorentzVector V4prot, TLorentzVector V4pi[3], int q_pi[3], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_tot[3], int targetCharge, double P_test[10], double Ecal_test[10], double P_1p3pi_to_1p2pi[4], double E_cal[4])
+{
+  const int N_pi = 3;
+  double P_1p3pito1p1pi_diff[3] = {0};
+  double P_1p3pito1p1pi_same[3] = {0};
+  double P_tot_2pi_diff[2] = {0};
+  double P_tot_2pi_same[2] = {0};
+  double E_cal_1p3pito1p1pi_diff[3] = {0};
+  double E_cal_1p3pito1p1pi_same[3] = {0};
+  double E_cal_2pi_diff[2] = {0};
+  double E_cal_2pi_same[2] = {0};
+  double rotation_ang;
+  TVector3 V3_rot_pi[N_pi], V3_p_rot;
+  bool status_pi[N_pi]={true};
+  bool status_prot = true;
+  double N_all = 0;
+  double N_1p1pi[3]={0},N_1p2pi[3]={0}, N_1p1pi_diff[3] = {0};
+  double N_1p2pi_diff[2][2] = {0.0};
+  double N_1p2pi_chargeDist[3][4] = {0.0}; 
+
+
+  //Imeplmenting charge selection
+  std::vector<int> piplIndexCounter; 
+  std::vector<int> pimiIndexCounter;
+  int PiPlusCounter = 0; 
+  int PiMinusCounter = 0;
+  //Implementing charge selection
+  for(int i = 0; i < N_pi; i++)
+  {
+    if(q_pi[i] == 1)
+    {
+      piplIndexCounter.push_back(i); 
+      PiPlusCounter++;
+    }
+    else if(q_pi[i] == -1)
+    {
+      pimiIndexCounter.push_back(i); 
+      PiMinusCounter++;
+    }
+  }
+
+  for(int g=0; g < N_tot; g++)
+  {
+    rotation_ang=gRandom->Uniform(0,2*TMath::Pi());
+    V3_p_rot = V3prot;
+
+    V3_p_rot.Rotate(rotation_ang,V3q);
+    
+    status_prot = PFiducialCut(fbeam_en, V3_p_rot);
+
+    for(int i=0;i<N_pi;i++)
+    {
+      V3_rot_pi[i]=V3pi[i];
+      V3_rot_pi[i].Rotate(rotation_ang,V3q);
+      status_pi[i]=Pi_phot_fid_united(fbeam_en, V3_rot_pi[i],q_pi[i]);
+    }
+    //All pions are detected
+    if(status_prot && status_pi[0] && status_pi[1] && status_pi[2]) N_all++;
+    //Detect two pions 
+    else if(status_prot && status_pi[0] && status_pi[1] && !status_pi[2]) //Detect first two
+    {
+      N_1p2pi[0]++;
+      if((q_pi[0] & q_pi[1]) == 1){N_1p2pi_chargeDist[0][0]++;}
+      else if(q_pi[0] == 1 && q_pi[1] == -1){N_1p2pi_chargeDist[0][1]++;}
+      else if(q_pi[0] == -1 && q_pi[1] == 1){N_1p2pi_chargeDist[0][2]++;}
+      else if((q_pi[0] & q_pi[1]) == -1){N_1p2pi_chargeDist[0][3]++;}
+      else{std::cout << "Uh-oh Spaghettios - your life is a mess" << std::endl;}
+    }
+    else if(status_prot && status_pi[0] && !status_pi[1] && status_pi[2]) // Detect pi1pi3
+    {
+      N_1p2pi[1]++;
+      if((q_pi[0] & q_pi[2]) == 1){N_1p2pi_chargeDist[1][0]++;}
+      else if(q_pi[0] == 1 && q_pi[2] == -1){N_1p2pi_chargeDist[1][1]++;}
+      else if(q_pi[0] == -1 && q_pi[2] == 1){N_1p2pi_chargeDist[1][2]++;}
+      else if((q_pi[0] & q_pi[2]) == -1){N_1p2pi_chargeDist[1][3]++;}
+      else{std::cout << "Uh-oh Spaghettios - your life is a mess" << std::endl;}
+    }
+    else if(status_prot && !status_pi[0] && status_pi[1] && status_pi[2]) // Detect pi2pi3
+    {
+      N_1p2pi[2]++;
+      if((q_pi[1] & q_pi[2]) == 1){N_1p2pi_chargeDist[2][0]++;}
+      else if(q_pi[1] == 1 && q_pi[2] == -1){N_1p2pi_chargeDist[2][1]++;}
+      else if(q_pi[1] == -1 && q_pi[2] == 1){N_1p2pi_chargeDist[2][2]++;}
+      else if((q_pi[2] & q_pi[2]) == -1){N_1p2pi_chargeDist[2][3]++;}
+      else{std::cout << "Uh-oh Spaghettios - your life is a mess" << std::endl;}
+    }
+    //Detect one pion
+    else if(status_prot && status_pi[0] && !status_pi[1] && !status_pi[2]) // Detect pi1
+    {
+      N_1p1pi[0]++;
+    }
+    else if(status_prot && !status_pi[0] && status_pi[1] && !status_pi[2]) // Detect pi2
+    {
+      N_1p1pi[1]++;
+    }
+    else if(status_prot && !status_pi[0] && !status_pi[1] && status_pi[2]) // Detect pi3
+    {
+      N_1p1pi[2]++;
+    }
+  }
+
+  if(N_all >  0) 
+  {
+    //easiest case is the 1p3pi->1p1pi event 
+    //Double-check this later - Ali
+    for(int i = 0; i < N_pi; i++)
+    {
+      prot1_pi1_en_calc(V4prot, V4pi[i], q_pi[i], V4_el, &Ecal_test[i], &p_miss_perp[i]);
+      if(q_pi[i] == targetCharge) {
+        P_1p3pito1p1pi_same[i] = -(N_1p1pi[i]/N_all); //Need to acct for charge stuff
+        E_cal_1p3pito1p1pi_same[i] = Ecal_test[i];
+        //P_test[i] = -(N_1p1pi[i]/N_all);
+        P_1p3pito1p1pi_diff[i] = 0;
+      }
+     else if(q_pi[i] != targetCharge) {
+        P_1p3pito1p1pi_diff[i] = -(N_1p1pi[i]/N_all); //Need to acct for charge stuff
+        E_cal_1p3pito1p1pi_diff[i] = Ecal_test[i];
+        P_1p3pito1p1pi_same[i] = 0;
+      }
+    }
+    int count = 0;
+    // Double check this later - Ali 
+   // double P_1p3pi_to_1p2pi[4] = {0.0};
+    double m_prot=0.9382720813;
+    //double E_cal[4] = {0.0};
+    for(int i = 0; i < 3; i++)
+    {
+      for(int k = 0; k < 4; k++)
+      {
+        P_1p3pi_to_1p2pi[k] += N_1p2pi_chargeDist[i][k]/N_all;
+        if(i == 0)//0 1
+        {
+          E_cal[k] = V4_el.E() + V4prot.E() - m_prot + V4pi[0].E() + V4pi[1].E();
+        }
+        else if(i == 1) //0 2
+        {
+          E_cal[k] = V4_el.E() + V4prot.E() - m_prot + V4pi[0].E() + V4pi[2].E();
+        }
+        else if(i == 2) // 1 2
+        {
+          E_cal[k] = V4_el.E() + V4prot.E() - m_prot + V4pi[1].E() + V4pi[2].E();
+        }
+      }
+    }
+
+
+
+    for(int i = 0; i < 2; i++)
+    {
+      for(int j = 1; j < 3; j++)
+      {
+        if(i == j) {continue;}
+        TVector3 V3pi2[2] = {V3pi[i], V3pi[j]};
+        TLorentzVector V4pi2[2] = {V4pi[i], V4pi[j]};
+        int charge_pi[2] = {q_pi[i], q_pi[j]};
+        double Ecal2pi[4] = {0};
+        double p_miss_perp2pi[2] = {p_miss_perp[i], p_miss_perp[j]};
+        double P_tot_2pi[4] = {0}; 
+        int target = targetCharge; 
+        prot1_pi2_rot_funcNew(V3prot, V3pi2, V4prot, V4pi2, charge_pi, V4_el, Ecal2pi, p_miss_perp2pi, P_tot_2pi, target);
+
+        for(int z = 0; z < 4; z++)
+        {
+          //Maybe change += to be diff probs instead if it still looks ugly
+          if(z <= 1)
+          {
+            P_tot_2pi_same[z] += (P_tot_2pi[z] *N_1p2pi[count] / N_all);
+            E_cal_2pi_same[z] = Ecal2pi[z];
+          }
+          else if(z > 1)
+          {
+            P_tot_2pi_diff[z-2] += (P_tot_2pi[z] *N_1p2pi[count] / N_all);
+            E_cal_2pi_diff[z-2] = Ecal2pi[z];
+          }
+          P_tot[count] += P_tot_2pi[z] * N_1p2pi[count] / N_all; //Probably delete this later, yeah? 
+        }
+        count = count + 1;
+      }
+    }
+    //Populate yo probabilities and energy, yo
+    for(int i = 0; i < 3; i++)
+    {
+      //First three will be 1pi det same 
+      P_test[i] = P_1p3pito1p1pi_same[i];
+      Ecal_test[i] = E_cal_1p3pito1p1pi_same[i];
+    }
+    //Next two will be 3p1pi->2p1pi->1p1pi det same 
+    for(int i = 3; i < 5; i++)
+    {
+      P_test[i] = P_tot_2pi_same[i-3];
+      Ecal_test[i] = E_cal_2pi_same[i-3];
+    }
+    //Next three will be 1p3pi->1p1pi det diff
+    for(int i = 5; i < 8; i++)
+    {
+      P_test[i] = P_1p3pito1p1pi_diff[i-5]; //Need to shift bc I will get arr out of bounds
+      Ecal_test[i] = E_cal_1p3pito1p1pi_diff[i-5];
+    }
+    //Final two will be 1p3pi->1p2pi->1p1pi det diff
+    for(int i = 8; i < 10; i++)
+    {
+      P_test[i] = P_tot_2pi_diff[i-8];
+      Ecal_test[i] = E_cal_2pi_diff[i-8];
+    }
+  }
+
+}
 
 void Subtraction::prot1_pi3_rot_func(TVector3  V3prot, TVector3 V3pi[3], TLorentzVector V4prot, TLorentzVector V4pi[3], int q_pi[3], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_tot[3], int targetCharge)
 {

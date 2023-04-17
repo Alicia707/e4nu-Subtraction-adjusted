@@ -16,6 +16,58 @@
 
 void Subtraction::prot1_pi2_rot_funcNew(TVector3  V3prot, TVector3 V3pi[2], TLorentzVector V4prot, TLorentzVector V4pi[2], int q_pi[2], TLorentzVector V4_el, double Ecal[3], double p_miss_perp[3], double P_1p1pi[], int targetCharge)
 {
+  const int N_pi = 2; 
+  double rotation_ang = 0.0; 
+  TVector3 V3_rot_pi[2], V3_p_rot;
+  bool status_pi[2] = {true};
+  bool status_prot = true;
+
+  double N_all = 0.0; 
+  double N_1p1pi_same[2] = {0}; // for when det pion is same as target charge 
+  double N_1p1pi_diff[2] = {0}; // for when the det pion is diff from target charge
+
+  std::vector<int> piplIndex; //Store indices of the + pions
+  std::vector<int> pimiIndex; //Store indices of the - pions 
+  int piplCounter = 0; 
+  int pimiCounter =0; 
+
+  for(int i = 0; i < N_pi; i++)//Particle identification for pions
+  {
+    if(q_pi[i] == 1) // pipl
+    {
+      piplIndex.push_back(i); 
+      piplCounter++; 
+    }
+    else if(q_pi[i] == -1) //pimi
+    {
+      pimiIndex.push_back(i); 
+      pimiCounter++; 
+    }
+  }
+
+  for(int g = 0; g < N_tot; g++) //Loop over the number of rotations
+  {
+    rotation_ang = gRandom->Uniform(0, 2*TMath::Pi());
+    V3_p_rot = V3prot; 
+    V3_p_rot.Rotate(rotation_ang, V3q); 
+
+    status_prot = PFiducialCut(fbeam_en, V3_p_rot);
+
+    for(int i = 0; i < N_pi; i++)
+    {
+      V3_rot_pi[i] = V3pi[i];
+      V3_rot_pi[i].Rotate(rotation_ang, V3q); 
+      status_pi[i] = Pi_phot_fid_united(fbeam_en, V3_rot_pi[i], q_pi[i]); 
+    }
+
+    if(status_prot && status_pi[0] && status_pi[1]) N_all++; //All particles detected 
+
+    if(piplCounter == 2 && pimiCounter == 0) 
+    {
+      //if()
+    }
+
+  }
 
 }
 

@@ -237,46 +237,6 @@ void genie_analysis::Loop(Int_t choice) {
 
 	// ---------------------------------------------------------------------------------------------------------------
 
-	// GENIE Systematic Uncertainties
-
-        //      TString TweakedVariable = "FormZone";
-        //      TString TweakedVariable = "AGKYpT1pi";
-        //      TString TweakedVariable = "AhtBY";
-        //      TString TweakedVariable = "BhtBY";
-        //      TString TweakedVariable = "CV1uBY";
-        //      TString TweakedVariable = "CV2uBY";
-        //      TString TweakedVariable = "AGKYxF1pi";
-        //      TString TweakedVariable = "MFP_pi";
-        //      TString TweakedVariable = "MFP_N";
-        //      TString TweakedVariable = "FrCEx_pi";
-        //      TString TweakedVariable = "FrInel_pi";
-        //      TString TweakedVariable = "FrAbs_pi";
-        //      TString TweakedVariable = "FrPiProd_pi";
-        //      TString TweakedVariable = "FrCEx_N";
-        //      TString TweakedVariable = "FrInel_N";
-        //      TString TweakedVariable = "FrAbs_N";
-        //      TString TweakedVariable = "FrPiProd_N";
-        //      TString TweakedVariable = "RDecBR1gamma";
-        //      TString TweakedVariable = "RDecBR1eta";
-        //      TString TweakedVariable = "EmpiricalMEC-Mq2d";
-        //      TString TweakedVariable = "EmpiricalMEC-Mass";
-        //      TString TweakedVariable = "EmpiricalMEC-Width";
-        //      TString TweakedVariable = "EmpiricalMEC-APower";
-        //      TString TweakedVariable = "EmpiricalMEC-FracPN_EM";
-        //      TString TweakedVariable = "EmpiricalMEC-FracEMQE";
-
-
-		//	TFile *fweights = new TFile("/w/hallb-scifs17exp/clas/claseg2/apapadop/myWeights/weights_"+TweakedVariable+"_"+TString(ftarget)+"_"+TString(fbeam_en)+".root");
-		//	TTree *tweights = (TTree*)fweights->Get(TweakedVariable);
-		//	int NtweightsEntries = tweights->GetEntries();
-
-		//	TArrayF* weights = NULL;
-		//	double fArray;
-		//	tweights->SetBranchAddress("weights", &weights);
-		//	int Ntfileentries = fChain->GetEntries();
-
-	// ---------------------------------------------------------------------------------------------------------------
-
 	//Output file definition
 
 	TFile *file_out;
@@ -1085,11 +1045,14 @@ void genie_analysis::Loop(Int_t choice) {
 					Smeared_Pp[num_p_det - 1] = temp_smear_P;
 					Smeared_Ep[num_p_det - 1] = temp_smear_E;
 				}
-				else
+				else if(choice == 0)
 				{ //CLAS data does not need Fiducial Cut again
-						num_p_det = num_p_det + 1;
-						index_p_det[num_p_det - 1] = i;
-						ProtonID.push_back(i);
+					num_p_det = num_p_det + 1;
+					index_p_det[num_p_det - 1] = i;
+					ProtonID.push_back(i);
+					//temp stuff bc the true will be true since its data 
+					index_p_true.push_back(i); 
+					num_p_true++;
 				}
 			}
 
@@ -1138,6 +1101,13 @@ void genie_analysis::Loop(Int_t choice) {
 					ind_pi_phot[num_pi_phot - 1] = i;
 					PiMinusID.push_back(i);
 					charge_pi_det[num_pi_det - 1] = -1;
+
+					//temp stuff bc data true will be true 
+					num_pimi_true++;
+					num_pi_true++;
+					index_pimi_true.push_back(i);
+					index_pi_true.push_back(i);
+					charge_pi_true[i] = -1;
 				}
 			}//end of pimi
 
@@ -1187,6 +1157,15 @@ void genie_analysis::Loop(Int_t choice) {
 					ind_pi_phot[num_pi_phot - 1] = i;
 					PiPlusID.push_back(i);
 					charge_pi_det[num_pi_det - 1] = 1;
+
+					//temp stuff bc data true will be true 
+					num_pipl_true++;
+					num_pi_true++;
+					index_pipl_true.push_back(i);
+					index_pi_true.push_back(i);
+					charge_pi_true[i] = 1;
+					index_pi_det[num_pi_det - 1] = i;
+
 				}
 			} //end of pipl
 
@@ -1207,10 +1186,10 @@ void genie_analysis::Loop(Int_t choice) {
 
 		//Skip event if there are more than 3 protons or more than 3 pions 
 		//Also skip if true exceeds this number bc we are only trying to fix the lower order mults rn 
-		if(num_p_det > 3 || num_pi_det > 3 || num_p_true > 3 || num_pi_true > 3 || (num_p_true == 3 && num_pi_true == 2) || (num_p_true == 2 && num_pi_true == 3)) 
+		/*if(num_p_det > 3 || num_pi_det > 3 || num_p_true > 3 || num_pi_true > 3 || (num_p_true == 3 && num_pi_true == 2) || (num_p_true == 2 && num_pi_true == 3)) 
 		{
 			continue;
-		}
+		} Omit for nwo bc thesis */
 
 		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 		// For GENIE samples, identify the interaction type
@@ -1408,8 +1387,8 @@ void genie_analysis::Loop(Int_t choice) {
 			{
 				//do nothing
 			}
-			else
-				std::cout << "Weird number of p/pi " << num_p_true << " " << num_pi_true << std::endl;
+			//else
+				//std::cout << "Weird number of p/pi " << num_p_true << " " << num_pi_true << std::endl;
 		}
 		if (num_p_det > 0)
 		{
@@ -1431,8 +1410,6 @@ void genie_analysis::Loop(Int_t choice) {
 		bool detTruthFlag = false; 
 
 		//Events with exactly 2 protons
-		/*
-		/* The following code is commented out to speed up testing*/ 
 		if(num_p_det == 2)
 		{
 			//Implement unsmeared
@@ -1511,7 +1488,7 @@ void genie_analysis::Loop(Int_t choice) {
 			
 			if (num_pi_det == 1)
 			{
-			  C2p1piALL++;
+				C2p1piALL++;
 
 				TVector3 V3_1pi_corr;
 				TLorentzVector V4_1pi_corr;
@@ -1574,7 +1551,7 @@ void genie_analysis::Loop(Int_t choice) {
 					if(charge_pi_true[index_pi_true[0]] == 1)
 					{
 					 	C2p1piPIPL++;
-						if(detTruthFlag)
+						if(detTruthFlag || choice == 0)
 						{
 							h1_test_E_cal_2p1pi_pipl->Fill(E_tot_2p[z], P_2p1pito1p1pi[z]*histoweight);
 						}
@@ -1760,7 +1737,7 @@ void genie_analysis::Loop(Int_t choice) {
 				else if(charge_pi_true[index_pi_det[0]] == -1)
 				{
 				  	C2p1piPIMI++;
-					if(detTruthFlag)
+					if(detTruthFlag || choice == 0)
 					{
 						h1_test_E_cal_2p1pi_pimi->Fill(E_tot_2p[z], P_2p1pito1p1pi[z]*histoweight);
 					}
@@ -2018,7 +1995,7 @@ void genie_analysis::Loop(Int_t choice) {
 						if(charge_pi_true[index_pi_det[j]] == 1) //MOVE STUFF DOWN HERE
 						{
 						  	C2p2piPIPL++;
-							if(detTruthFlag)
+							if(detTruthFlag || choice == 0)
 							{
 								h1_test_E_cal_2p2pi_pipl->Fill(Ecal2p2pi[z][j], P_tot_2p[z][j]*histoweight);
 							}
@@ -2183,8 +2160,7 @@ void genie_analysis::Loop(Int_t choice) {
 
 		//Events with exactly 3 protons
 
-		/*
-		/* The following code is commented out to speed up testing 
+		
 		if(num_p_det == 3)
 		{
 			const int N_3p = 3;
@@ -2207,23 +2183,23 @@ void genie_analysis::Loop(Int_t choice) {
 
 				N_p1[i] = 0;
 
-				V4_p_uncorr[i].SetPxPyPzE(pxf[index_p[i]],pyf[index_p[i]],pzf[index_p[i]],TMath::Sqrt(m_prot*m_prot+pf[index_p[i]]*pf[index_p[i]]));
+				V4_p_uncorr[i].SetPxPyPzE(pxf[index_p_det[i]],pyf[index_p_det[i]],pzf[index_p_det[i]],TMath::Sqrt(m_prot*m_prot+pf[index_p_det[i]]*pf[index_p_det[i]]));
 				V3_prot_uncorr[i] = V4_p_uncorr[i].Vect();
 
 				if (choice == 0) { //CLAS data
 
-					V3_prot_corr[i].SetXYZ(pxf[index_p[i]+60], pyf[index_p[i]+60], pzf[index_p[i]+60]);
-					V4_p_corr[i].SetPxPyPzE(pxf[index_p[i]+60], pyf[index_p[i]+60], pzf[index_p[i]+60],TMath::Sqrt(m_prot*m_prot+pf[index_p[i]+60]*pf[index_p[i]+60]));
+					V3_prot_corr[i].SetXYZ(pxf[index_p_det[i]+60], pyf[index_p_det[i]+60], pzf[index_p_det[i]+60]);
+					V4_p_corr[i].SetPxPyPzE(pxf[index_p_det[i]+60], pyf[index_p_det[i]+60], pzf[index_p_det[i]+60],TMath::Sqrt(m_prot*m_prot+pf[index_p_det[i]+60]*pf[index_p_det[i]+60]));
 					p_acc_ratio[i] = 1; //Acceptance is 1 for CLAS datafile
 				}
 
 				if (choice == 1) { //GENIE data
 
 					p_acc_ratio[i] = 0; //Reset just to be sure
-					V3_prot_corr[i].SetXYZ(Smeared_Pp[i]/pf[index_p[i]] * pxf[index_p[i]],Smeared_Pp[i]/pf[index_p[i]] * pyf[index_p[i]],
-						Smeared_Pp[i]/pf[index_p[i]] * pzf[index_p[i]]);
-					V4_p_corr[i].SetPxPyPzE(Smeared_Pp[i]/pf[index_p[i]] * pxf[index_p[i]],Smeared_Pp[i]/pf[index_p[i]] * pyf[index_p[i]],
-						Smeared_Pp[i]/pf[index_p[i]] * pzf[index_p[i]],Smeared_Ep[i]);
+					V3_prot_corr[i].SetXYZ(Smeared_Pp[i]/pf[index_p_det[i]] * pxf[index_p_det[i]],Smeared_Pp[i]/pf[index_p_det[i]] * pyf[index_p_det[i]],
+						Smeared_Pp[i]/pf[index_p_det[i]] * pzf[index_p_det[i]]);
+					V4_p_corr[i].SetPxPyPzE(Smeared_Pp[i]/pf[index_p_det[i]] * pxf[index_p_det[i]],Smeared_Pp[i]/pf[index_p_det[i]] * pyf[index_p_det[i]],
+						Smeared_Pp[i]/pf[index_p_det[i]] * pzf[index_p_det[i]],Smeared_Ep[i]);
 
 					double phi_prot = V3_el.Phi(); //in Radians
 					V3_prot_corr[i].SetPhi(phi_prot + TMath::Pi() ); // Vec.Phi() is between (-180,180)
@@ -2475,7 +2451,7 @@ void genie_analysis::Loop(Int_t choice) {
 
 			} // 1 pi requirement ends
 
-		} //end if num_p_det == 3  3proton requirement */
+		} //end if num_p_det == 3  3proton requirement 
 
 		//Events with exactly one proton
 
@@ -2520,7 +2496,7 @@ void genie_analysis::Loop(Int_t choice) {
 			//---------------------------------- 1p 1pi   ----------------------------------------------
 			//The following code is commented out to speed up execution for testing 
 			if(num_pi_det == 1){C1p1piALL++;}
-			/*if(num_pi_det == 1)
+			if(num_pi_det == 1)
 			{
 			  C1p1piALL++;
 
@@ -2532,8 +2508,8 @@ void genie_analysis::Loop(Int_t choice) {
 				if (choice == 0) { //CLAS data
 
 					pion_acc_ratio = 1; //Acceptance is 1 for CLAS data
-					V3_pi_corr.SetXYZ(pxf[ind_pi_phot[0]], pyf[ind_pi_phot[0]], pzf[ind_pi_phot[0]]);
-					V4_pi_corr.SetPxPyPzE(pxf[ind_pi_phot[0]], pyf[ind_pi_phot[0]], pzf[ind_pi_phot[0]],TMath::Sqrt(m_pion*m_pion+pf[ind_pi_phot[0]]*pf[ind_pi_phot[0]]));
+					V3_pi_corr.SetXYZ(pxf[index_pi_det[0]], pyf[index_pi_det[0]], pzf[index_pi_det[0]]);
+					V4_pi_corr.SetPxPyPzE(pxf[index_pi_det[0]], pyf[index_pi_det[0]], pzf[index_pi_det[0]],TMath::Sqrt(m_pion*m_pion+pf[index_pi_det[0]]*pf[index_pi_det[0]]));
 				}
 
 				if (choice == 1) { //GENIE data
@@ -2573,11 +2549,11 @@ void genie_analysis::Loop(Int_t choice) {
 				//double histoweight = pion_acc_ratio * p_acc_ratio * e_acc_ratio * wght/Mott_cross_sec;
 				//1proton, 1 Pion, 1 electron acceptance, GENIE weight and Mott
 
-				if(charge_pi_det[0] == 1)
+				if(charge_pi_true[index_pi_det[0]] == 1)
 				{
 				  C1p1piPIPL++;
 					// 11.3.21 EDIT: Added histogram filling for 1p1pi_pipl ONLY and tot events
-					h1_E_cal_1p1pi_pipl_ONLY ->Fill(Ecal,histoweight);
+					h1_E_cal_1p1pi_pipl_ONLY->Fill(Ecal,histoweight);
 					h1_E_cal_1p1pi_pipl_tot->Fill(Ecal, histoweight);
 					h1_E_tot_pipl->Fill(Ecal,histoweight);
 				//	h1_E_tot_pipl_const_bin->Fill(Ecal,histoweight);
@@ -2589,8 +2565,8 @@ void genie_analysis::Loop(Int_t choice) {
 					h2_Etot_pperp_pipl->Fill(p_perp_tot,Ecal,histoweight);
 					h1_E_rec_cutpi1_pipl->Fill(E_rec,histoweight);
 					h1_E_tot_cutpi1_pipl->Fill(Ecal,histoweight);
-			}//11.3.21 Minor Bug fix: added conditional for charge < 0
-				else if(charge_pi_det[0] == -1)
+				}//11.3.21 Minor Bug fix: added conditional for charge < 0
+				else if(charge_pi_true[index_pi_det[0]] == -1)
 				{
 				  C1p1piPIMI++;
 					// 11.3.21 EDIT: Added histogram filling for 1p1pi ONLY  and tot events
@@ -2608,13 +2584,13 @@ void genie_analysis::Loop(Int_t choice) {
 					h1_E_rec_cutpi1_pimi->Fill(E_rec,histoweight);
 					h1_E_tot_cutpi1_pimi->Fill(Ecal,histoweight);
 				}
-			 }//end of 1p 1pi requirement*/
+			 }//end of 1p 1pi requirement
 
 			//---------------------------------- 1p 2pi   ----------------------------------------------
 
 			if(num_pi_det == 2)
 			{
-			  C1p2piALL++;
+			  	C1p2piALL++;
 
 				const int N_2pi=2;
 				TVector3 V3_2pi_corr[N_2pi],V3_2pi_rot[N_2pi],V3_p_rot;
@@ -2671,14 +2647,24 @@ void genie_analysis::Loop(Int_t choice) {
 				//	double histoweight = weight_pions * p_acc_ratio * e_acc_ratio * wght/Mott_cross_sec;
 				//1proton, 2 Pion, 1 electron acceptance, GENIE weight and Mott
 				//test case to see if calc works
-				double P_1p1pi_pipl[3] = {0};
+				/*double P_1p1pi_pipl[3] = {0};
 				double Ecal_pipl[3] = {0};
 				double Ecal_pimi[3] = {0};
 				double P_1p1pi_pimi[3] = {0};
 				double p_miss_perp_pipl[3] = {0};
+				double p_miss_perp_pimi[3] = {0};*/
+				double P_1p1pi_pipl[4] = {0};
+				double P_1p1pi_pimi[4] = {0};
+				double Ecal_pipl[4] = {0};
+				double Ecal_pimi[4] = {0};
+				//double Ecal_pimi[3] = {0};
+				//double P_1p1pi_pimi[3] = {0};
+				double p_miss_perp_pipl[3] = {0};
 				double p_miss_perp_pimi[3] = {0};
-				rotation->prot1_pi2_rot_func(V3_prot_uncorr,V3_2pi_corr, V4_prot_corr, V4_2pi_corr, charge_pi_det, V4_el, Ecal_pipl, p_miss_perp_pipl, P_1p1pi_pipl, 1);
-				rotation->prot1_pi2_rot_func(V3_prot_uncorr,V3_2pi_corr, V4_prot_corr, V4_2pi_corr, charge_pi_det, V4_el, Ecal_pimi, p_miss_perp_pimi, P_1p1pi_pimi, -1);
+				rotation->prot1_pi2_rot_funcNew(V3_prot_uncorr,V3_2pi_corr, V4_prot_corr, V4_2pi_corr, charge_pi_det, V4_el, Ecal_pipl, p_miss_perp_pipl, P_1p1pi_pipl, 1);
+				rotation->prot1_pi2_rot_funcNew(V3_prot_uncorr,V3_2pi_corr, V4_prot_corr, V4_2pi_corr, charge_pi_det, V4_el, Ecal_pimi, p_miss_perp_pimi, P_1p1pi_pimi, -1);
+				//rotation->prot1_pi2_rot_func(V3_prot_uncorr,V3_2pi_corr, V4_prot_corr, V4_2pi_corr, charge_pi_det, V4_el, Ecal_pipl, p_miss_perp_pipl, P_1p1pi_pipl, 1);
+				//rotation->prot1_pi2_rot_func(V3_prot_uncorr,V3_2pi_corr, V4_prot_corr, V4_2pi_corr, charge_pi_det, V4_el, Ecal_pimi, p_miss_perp_pimi, P_1p1pi_pimi, -1);
 
 				for(int k = 0; k < 2; k++)
 				{
@@ -2690,23 +2676,28 @@ void genie_analysis::Loop(Int_t choice) {
 				detTruthFlag = (((num_pi_true == 2) && (num_p_true == 1)) && ((num_pi_det == 2) && (num_p_det == 1)));
 				if(detTruthFlag)
 				{
-					for(int z = 0; z < N_2pi; z++)
+					for(int z = 0; z < 4; z++)
 					{
-						if(charge_pi_true[index_pi_det[z]] == 1)
+						if(charge_pi_true[index_pi_det[z%2]] == 1)
 						{
-							h1_test_E_cal_1p2pi_pipl_piplSame->Fill(Ecal_pipl[z], P_1p1pi_pipl[z]*histoweight);
-							if(z == 1)
+							h1_test_E_cal_1p2pi_pipl->Fill(Ecal_pipl[z], P_1p1pi_pipl[z]);
+							if(z <= 1) {h1_test_E_cal_1p2pi_pipl_piplSame->Fill(Ecal_pipl[z], P_1p1pi_pipl[z]*histoweight);}
+							if(z > 1)
 							{
-								h1_test_E_cal_1p2pi_pipl_diff->Fill(Ecal_pipl[2], P_1p1pi_pipl[2]*histoweight);
+								h1_test_E_cal_1p2pi_pipl_diff->Fill(Ecal_pipl[z], P_1p1pi_pipl[z]*histoweight);
 							}
 							// ^ I am a dumbass, Ecal[2] is literally 0 >:(
 						}
-						else if(charge_pi_true[index_pi_det[z]] == -1)
+						else if(charge_pi_true[index_pi_det[z%2]] == -1)
 						{
-							h1_test_E_cal_1p2pi_pimi_pimiSame->Fill(Ecal_pimi[z], P_1p1pi_pimi[z]*histoweight);
-							if(z == 1)
+							h1_test_E_cal_1p2pi_pimi->Fill(Ecal_pimi[z], P_1p1pi_pimi[z]);
+							if(z <= 1)
 							{
-								h1_test_E_cal_1p2pi_pimi_diff->Fill(Ecal_pimi[2], P_1p1pi_pimi[2]*histoweight);
+								h1_test_E_cal_1p2pi_pimi_pimiSame->Fill(Ecal_pimi[z], P_1p1pi_pimi[z]*histoweight);
+							}
+							else if(z > 1)
+							{
+								h1_test_E_cal_1p2pi_pimi_diff->Fill(Ecal_pimi[z], P_1p1pi_pimi[z]*histoweight);
 							}
 						}
 					}
@@ -2716,16 +2707,6 @@ void genie_analysis::Loop(Int_t choice) {
 					if(charge_pi_true[index_pi_det[z]] == 1)
 					{
 						C1p2piPIPL++;
-						if(detTruthFlag)
-						{
-							h1_test_E_cal_1p2pi_pipl->Fill(Ecal_pipl[z], P_1p1pi_pipl[z]*histoweight);
-							if(z == 1)
-							{
-								h1_test_E_cal_1p2pi_pipl->Fill(Ecal_pipl[2], P_1p1pi_pipl[2]*histoweight);
-							}
-							//need to include z=2 bc I made a 3-index array 
-							// add integral to stat box 
-						}
 						//11.3.21 EDIT: Added 1p1pi tot h1
 						h1_E_cal_1p1pi_pipl_tot->Fill(Ecal[z],histoweight);
 
@@ -2801,12 +2782,6 @@ void genie_analysis::Loop(Int_t choice) {
 					else if(charge_pi_true[index_pi_det[z]] == -1)
 					{
 					  	C1p2piPIMI++;
-						if(detTruthFlag)
-						{
-							h1_test_E_cal_1p2pi_pimi->Fill(Ecal_pimi[z], P_1p1pi_pimi[z]*histoweight);
-							if(z == 1)
-								h1_test_E_cal_1p2pi_pimi->Fill(Ecal_pimi[2], P_1p1pi_pimi[2]*histoweight);
-						}
 						//11.3.21 EDIT: Added 1p1pi tot h1
 						h1_E_cal_1p1pi_pimi_tot->Fill(Ecal[z], histoweight);
 
@@ -3131,6 +3106,10 @@ void genie_analysis::Loop(Int_t choice) {
 	h1_E_cal_pimi_sub->Add(h1_E_tot_1p3pi_pimi, 1);
 	h1_E_cal_pimi_sub->Write("process1");
 
+	TH1F* h1_E_cal_pimi_sub_thesis = (TH1F*) h1_E_tot_pimi->Clone("h1_E_cal_pimi_sub_thesis");
+	h1_E_cal_pimi_sub_thesis->Add(h1_test_E_cal_1p2pi_pimi, 1); 
+	h1_E_cal_pimi_sub_thesis->Add(h1_test_E_cal_2p1pi_pimi, 1);
+
 
 	TH1F* h1_E_cal_pipl_sub = (TH1F*) h1_E_tot_pipl->Clone("h1_E_cal_pipl_sub");
 
@@ -3141,6 +3120,10 @@ void genie_analysis::Loop(Int_t choice) {
 	h1_E_cal_pipl_sub->Add(h1_E_tot_1p2pi_pipl, 1);
 	h1_E_cal_pipl_sub->Add(h1_E_tot_1p3pi_pipl, 1);
 	//Weights of +1 to add positively
+
+	TH1F* h1_E_cal_pipl_sub_thesis = (TH1F*) h1_E_tot_pipl->Clone("h1_E_cal_pipl_sub_thesis");
+	h1_E_cal_pipl_sub_thesis->Add(h1_test_E_cal_1p2pi_pipl, 1); 
+	h1_E_cal_pipl_sub_thesis->Add(h1_test_E_cal_2p1pi_pipl, 1);
 
 /*	for(int i = 0; i <= n_slice-1; i++) {
 
@@ -3484,8 +3467,6 @@ void genie_analysis::Loop(Int_t choice) {
 
 //End Loop function
 
-// -------------------------------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------------------------------
 
 double genie_analysis::acceptance_c(double p, double cost, double phi, int particle_id,TFile* file_acceptance)
 {
